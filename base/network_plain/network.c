@@ -7,19 +7,24 @@ unsigned int pluginType() {
 }
 
 
+const char *pluginName() {
+	return "plain";
+}
+
+
 void *pluginConnect(const char *host, int port) {
 	NETWORK_PLAIN *connection;
 	struct sockaddr_in address;
 	struct hostent *hp;
 
-	if ((connection = malloc(sizeof(NETWORK_PLAIN))) == NULL)
+	if ((connection = malloc(sizeof(NETWORK_PLAIN))) == NULL) {
 		configErrorPush("Unable to malloc");
 		return NULL;
 	}
 
 	if ((hp = gethostbyname(host)) == NULL) {
 		configErrorPush("Unable to resolve hostname");
-		vree(connection);
+		free(connection);
 		return NULL;
 	}
 
@@ -57,4 +62,11 @@ int pluginReadData(NETWORK_PLAIN *connection, char *buffer, int buffer_len) {
 
 int pluginSendData(NETWORK_PLAIN *connection, char *buffer, int buffer_len) {
 	return send(connection->socket, buffer, buffer_len, 0);
+}
+
+
+void *pluginSocketDone(NETWORK_PLAIN *connection) {
+	close(connection->socket);
+	free(connection);
+	return NULL;
 }
