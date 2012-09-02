@@ -2,19 +2,26 @@
 
 
 void configProcess(const char *command, const char *arg1, const char *arg2) {
-	char network[64];
-
-	*network = 0;
+	char *network = config->parse_buf;
 
 	if (strcmp(command, "}") == 0)
 		*network = 0;
 	else if (strlen(network) != 0) {
-		/* TODO: Add network setup parameters */
+		if (strcmp(command, "nick") == 0)
+			networkNickSet(network, arg1);
+		else if (strcmp(command, "layer") == 0)
+			networkLayerSet(network, arg1);
+		else if (strcmp(command, "server") == 0)
+			networkHostSet(network, arg1);
+		else if (strcmp(command, "port") == 0)
+			networkPortSet(network, atoi(arg1));
+		else if (strcmp(command, "channel") == 0)
+			networkChannelAdd(network, arg1, arg2);
 	} else if (strcmp(command, "plugin") == 0) {
 		if (strcmp(arg1, "scan") == 0)
 			pluginCrawl(arg2);
 	} else if (strcmp(command, "network") == 0) {
-		strncpy(network, arg1, 64);
+		strncpy(config->parse_buf, arg1, 64);
 		networkAdd(arg1);
 	}
 
@@ -27,6 +34,7 @@ int configRead(const char *path) {
 	FILE *fp;
 	char command[64], arg1[128], arg2[128], buff[512];
 
+	*config->parse_buf = 0;
 	networkInit();
 
 	if ((fp = fopen(path, "r")) == NULL) {

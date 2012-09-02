@@ -1,6 +1,10 @@
 #ifndef __NETWORK_H__
 #define	__NETWORK_H__
 
+
+#define	NETWORK_CHANNEL_SEND_CAP		5
+
+
 struct NETWORK_CHANNEL {
 	char			name[128];
 	char			key[128];
@@ -25,6 +29,11 @@ struct NETWORK_ENTRY {
 
 
 void networkAdd(const char *name);
+void networkHostSet(const char *name, const char *host);
+void networkPortSet(const char *name, int port);
+void networkNickSet(const char *name, const char *nick);
+void networkLayerSet(const char *name, const char *layer);
+void networkChannelAdd(const char *name, const char *channel, const char *key);
 void networkInit();
 
 

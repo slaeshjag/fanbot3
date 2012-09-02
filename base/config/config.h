@@ -18,6 +18,7 @@
 typedef struct {
 	PLUGIN				plugin;
 	struct NETWORK_ENTRY		*network;
+	char				parse_buf[64];
 } CONFIG;
 
 
