@@ -10,15 +10,12 @@
 #include <dlfcn.h>
 #include <signal.h>
 
+#include "api.h"
 #include "plugin.h"
 
 
 
-
-
-
 typedef struct {
-#include <dirent.h>
 	PLUGIN				plugin;
 } CONFIG;
 

@@ -3,6 +3,7 @@
 
 
 #define		PLUGIN_TYPE_NETWORK		0x1
+#define		PLUGIN_TYPE_FILTER		0x2
 
 
 void configErrorPush(const char *err);

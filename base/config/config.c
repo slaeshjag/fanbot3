@@ -7,4 +7,5 @@ void *init() {
 		return NULL;
 	}
 
-	
+	return NULL;
+}

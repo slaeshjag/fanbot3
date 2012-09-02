@@ -15,18 +15,19 @@ struct PLUGIN_NETWORK_ENTRY {
 
 
 struct PLUGIN_FILTER_ENTRY {
-	void				lib_handle;
+	void				*lib_handle;
 	const char			*name;
 	int				trig_type;
 	void				*(*init)();
 	void				(*filter)(void *handle, const char *from, const char *host,  const char *channel, const char *message);
-	void				*(destroy)(void *handle);
+	void				*(*destroy)(void *handle);
+	struct PLUGIN_FILTER_ENTRY	*next;
 };
 
 
 typedef struct {
-	PLUGIN_NETWORK_ENTRY		*network_plug;
-	PLUGIN_FILTER_ENTRY		*filter_plug;
+	struct PLUGIN_NETWORK_ENTRY	*network_plug;
+	struct PLUGIN_FILTER_ENTRY	*filter_plug;
 } PLUGIN;
 
 
