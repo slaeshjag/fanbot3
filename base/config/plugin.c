@@ -13,7 +13,7 @@ void pluginAddNetwork(void *lib_handle, const char *name) {
 	struct PLUGIN_NETWORK_ENTRY *plugin;
 
 	if ((plugin = malloc(sizeof(struct PLUGIN_NETWORK_ENTRY))) == NULL) {
-		ldclose(lib_handle);
+		dlclose(lib_handle);
 		return;
 	}
 
@@ -26,7 +26,7 @@ void pluginAddNetwork(void *lib_handle, const char *name) {
 	plugin->disconnect = dlsym(lib_handle, "pluginSocketDone");
 
 	if (!plugin->connect || !plugin->socket || !plugin->read || !plugin->write || !plugin->disconnect) {
-		ldclose(lib_handle);
+		dlclose(lib_handle);
 		free(plugin);
 		return;
 	}
@@ -65,7 +65,7 @@ void pluginAddFilter(void *lib_handle, const char *name) {
 	plugin->destroy = dlsym(lib_handle, "pluginDestroy");
 
 	if (!plugin->init || !plugin->filter || !plugin->destroy) {
-		ldclose(lib_handle);
+		dlclose(lib_handle);
 		free(plugin);
 		return;
 	}
@@ -116,7 +116,7 @@ void pluginProcess(const char *path, const char *name) {
 			pluginAddFilter(lib_handle, (pluginName)());
 			break;
 		default:
-			ldclose(lib_handle);
+			dlclose(lib_handle);
 			fprintf(stderr, "[CONFIG] %s/%s is of a type not implemented\n", path, name);
 			break;
 	}
