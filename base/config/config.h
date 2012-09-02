@@ -12,11 +12,12 @@
 
 #include "api.h"
 #include "plugin.h"
-
+#include "network.h"
 
 
 typedef struct {
 	PLUGIN				plugin;
+	struct NETWORK_ENTRY		*network;
 } CONFIG;
 
 

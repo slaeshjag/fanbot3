@@ -2,10 +2,22 @@
 
 
 void configProcess(const char *command, const char *arg1, const char *arg2) {
-	if (strcmp(command, "plugin") == 0) {
+	char network[64];
+
+	*network = 0;
+
+	if (strcmp(command, "}") == 0)
+		*network = 0;
+	else if (strlen(network) != 0) {
+		/* TODO: Add network setup parameters */
+	} else if (strcmp(command, "plugin") == 0) {
 		if (strcmp(arg1, "scan") == 0)
 			pluginCrawl(arg2);
+	} else if (strcmp(command, "network") == 0) {
+		strncpy(network, arg1, 64);
+		networkAdd(arg1);
 	}
+
 
 	return;
 }
@@ -14,6 +26,8 @@ void configProcess(const char *command, const char *arg1, const char *arg2) {
 int configRead(const char *path) {
 	FILE *fp;
 	char command[64], arg1[128], arg2[128], buff[512];
+
+	networkInit();
 
 	if ((fp = fopen(path, "r")) == NULL) {
 		fprintf(stderr, "[CONFIG] Unable to open configuration file %s. We're doomed\n", path);

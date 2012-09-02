@@ -1,4 +1,4 @@
-SRC = config.c plugin.c
+SRC = config.c plugin.c network.c
 CFLAGS += -fPIC -shared -Wl,-soname,config.so -O3
 LDFLAGS += -ldl
 
