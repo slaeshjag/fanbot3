@@ -31,4 +31,8 @@ typedef struct {
 } PLUGIN;
 
 
+void pluginInit();
+void pluginCrawl(const char *path);
+
+
 #endif

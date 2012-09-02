@@ -84,7 +84,7 @@ void pluginProcess(const char *path, const char *name) {
 	char fname[512], *longname, *usename;
 	unsigned int (*pluginType)();
 	const char *(*pluginName)();
-	
+
 	longname = NULL;
 	if (strlen(path) + strlen(name) + 2 > 512) {
 		longname = malloc(strlen(path) + strlen(name) + 2);
@@ -129,7 +129,8 @@ void pluginCrawl(const char *path) {
 	DIR *dir;
 	struct dirent *file;
 	
-	dir = opendir(path);
+	if ((dir = opendir(path)) == NULL)
+		return;
 
 	do {
 		file = readdir(dir);
