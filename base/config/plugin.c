@@ -41,6 +41,20 @@ void pluginAddNetwork(void *lib_handle, const char *name) {
 }
 
 
+struct PLUGIN_NETWORK_ENTRY *pluginFindNetwork(const char *name) {
+	struct PLUGIN_NETWORK_ENTRY *next;
+
+	next = config->plugin.network_plug;
+	while (next != NULL) {
+		if (strcmp(name, next->name) == 0)
+			return next;
+		next = next->next;
+	}
+
+	return NULL;
+}
+
+
 void pluginAddFilter(void *lib_handle, const char *name) {
 	struct PLUGIN_FILTER_ENTRY *plugin;
 	int (*trig_type)();

@@ -13,11 +13,13 @@
 #include "api.h"
 #include "plugin.h"
 #include "network.h"
+#include "layer.h"
 
 
 typedef struct {
 	PLUGIN				plugin;
 	struct NETWORK_ENTRY		*network;
+	NETWORK_MAIN			net;
 	char				parse_buf[64];
 } CONFIG;
 

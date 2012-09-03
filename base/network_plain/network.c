@@ -55,13 +55,23 @@ int pluginSocketGet(NETWORK_PLAIN *connection) {
 }
 
 
-int pluginReadData(NETWORK_PLAIN *connection, char *buffer, int buffer_len) {
-	return recv(connection->socket, buffer, buffer_len, 0);
+int pluginReadData(NETWORK_PLAIN *connection, char *buffer, int buffer_len, int *error) {
+	int ret;
+
+	errno = 0;
+	if ((ret = recv(connection->socket, buffer, buffer_len, 0)) == -1)
+		*error = errno;
+	return ret;
 }
 
 
-int pluginSendData(NETWORK_PLAIN *connection, char *buffer, int buffer_len) {
-	return send(connection->socket, buffer, buffer_len, 0);
+int pluginSendData(NETWORK_PLAIN *connection, char *buffer, int buffer_len, int *error) {
+	int ret;
+
+	errno = 0;
+	if ((ret = send(connection->socket, buffer, buffer_len, 0)) == -1)
+		*error = errno;
+	return ret;
 }
 
 

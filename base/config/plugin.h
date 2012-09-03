@@ -7,8 +7,8 @@ struct PLUGIN_NETWORK_ENTRY {
 	const char			*name;
 	void				*(*connect)(const char *host, int port);
 	int				(*socket)(void *handle);
-	int				(*read)(void *handle, char *buffer, int buffer_len);
-	int				(*write)(void *handle, char *buffer, int buffer_len);
+	int				(*read)(void *handle, char *buffer, int buffer_len, int *error);
+	int				(*write)(void *handle, char *buffer, int buffer_len, int *error);
 	void				*(*disconnect)(void *handle);
 	struct PLUGIN_NETWORK_ENTRY	*next;
 };
@@ -32,6 +32,7 @@ typedef struct {
 
 
 void pluginInit();
+struct PLUGIN_NETWORK_ENTRY *pluginFindNetwork(const char *name);
 void pluginCrawl(const char *path);
 
 

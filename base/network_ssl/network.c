@@ -48,25 +48,37 @@ int pluginSocketGet(NETWORK_SSL *connection) {
 }
 
 
-int pluginReadData(NETWORK_SSL *connection, char *buffer, int buffer_len) {
+int pluginReadData(NETWORK_SSL *connection, char *buffer, int buffer_len, int *error) {
 	int ret;
 
+	*error = 0;
+	errno = 0;
 	if ((ret = BIO_read(connection->bio, buffer, buffer_len)) == 0)
-		return ECONNRESET;
+		*error = ECONNRESET;
 	else if (ret == -1)
-		return (!BIO_should_retry(connection->bio)) ? ECONNRESET : EWOULDBLOCK;
+		*error = (!BIO_should_retry(connection->bio)) ? ECONNRESET : EWOULDBLOCK;
+	if (*error == EWOULDBLOCK)
+		ret = 0;
 	return ret;
 }
 
 
-int pluginSendData(NETWORK_SSL *connection, const char *buffer, int buffer_len) {
+int pluginSendData(NETWORK_SSL *connection, const char *buffer, int buffer_len, int *error) {
 	int ret;
+
+	*error = 0;
+	errno = 0;
 	if ((ret = BIO_write(connection->bio, buffer, buffer_len)) <= 0) {
 		if (!BIO_should_retry(connection->bio))
-			return ECONNRESET;
-		return EWOULDBLOCK;
+			*error = ECONNRESET;
+		else
+			*error = EWOULDBLOCK;
 	}
 
+	if (*error == EWOULDBLOCK)
+		return 0;
+	if (*error == ECONNRESET)
+		return -1;
 	return ret;
 }
 

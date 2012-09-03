@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 	signal(SIGSEGV, reload);
 
 	if ((fanbot.library = dlopen("base/config.so", RTLD_NOW | RTLD_GLOBAL)) == NULL) {
-		fprintf(stderr, "Unable to load base/config.so. Fanbot is nothing without config.so\n");
+		fprintf(stderr, "Unable to load base/config.so. Fanbot is nothing without config.so\n%s\n", dlerror());
 		return -1;
 	}
 
