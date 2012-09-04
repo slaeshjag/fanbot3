@@ -10,7 +10,10 @@ void loadSymbols() {
 
 
 void reload(int signal) {
-	(fanbot.destroy)(fanbot.handle);
+	char num[64];
+
+	sprintf(num, "RELOADING - Got signal %i", signal);
+	(fanbot.destroy)(fanbot.handle, num);
 	dlclose(fanbot.library);
 
 	if ((fanbot.library = dlopen("base/config.so", RTLD_NOW | RTLD_GLOBAL)) == NULL) {
@@ -37,6 +40,7 @@ int main(int argc, char **argv) {
 	loadSymbols();
 	fanbot.handle = (fanbot.init)();
 
+	(fanbot.destroy)(fanbot.handle, "Shutting down - init() returned");
 	fprintf(stderr, "init() returned. This shouldn't be possible.\n");
 
 	return -1;

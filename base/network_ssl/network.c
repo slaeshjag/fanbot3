@@ -20,9 +20,15 @@ void *pluginConnect(const char *host, int port) {
 		return NULL;
 	}
 
+	SSL_library_init();
+	SSL_load_error_strings();
+	ERR_load_BIO_strings();
+	OpenSSL_add_all_algorithms();
+
 	connection->ctx = SSL_CTX_new(SSLv23_client_method());
 
 	if ((connection->bio = BIO_new_ssl_connect(connection->ctx)) == NULL) {
+		fprintf(stderr, "%s\n", ERR_reason_error_string(ERR_get_error()));
 		configErrorPush("Unable to allocate a BIO");
 		free(connection);
 		return NULL;

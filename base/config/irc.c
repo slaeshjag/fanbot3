@@ -34,9 +34,9 @@ void ircPong(const char *msg) {
 
 	if ((network = networkFind(config->net.network_active)) == NULL)
 		return;
-
+	
 	sprintf(sendbuff, "PONG %s\r\n", msg);
-	layerWrite(network->layer, network->network_handle, msg, strlen(msg), &error);
+	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
 
 	return;
 }
@@ -51,7 +51,38 @@ void ircQuit(const char *msg) {
 		return;
 
 	sprintf(sendbuff, "QUIT :%s\r\n", msg);
-	layerWrite(network->layer, network->network_handle, msg, strlen(msg), &error);
+	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
+
+	return;
+}
+
+
+void ircNick(const char *nick) {
+	struct NETWORK_ENTRY *network;
+	char sendbuff[512];
+	int error;
+
+	if ((network = networkFind(config->net.network_active)) == NULL)
+		return;
+	
+	sprintf(sendbuff, "USER %s %s %s :Fanbot³\r\n", nick, nick, nick);
+	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
+	sprintf(sendbuff, "NICK %s\r\n", nick);
+	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
+
+	return;
+}
+
+
+void ircJoin(const char *channel, const char *key) {
+	struct NETWORK_ENTRY *network;
+	char sendbuff[512];
+	int error;
+
+	if ((network = networkFind(config->net.network_active)) == NULL)
+		return;
+	sprintf(sendbuff, "JOIN %s %s\r\n", channel, key);
+	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
 
 	return;
 }
@@ -61,17 +92,18 @@ void ircLine() {
 	struct NETWORK_ENTRY *network;
 	char *hoststr, *nick, *command, *arg, *string;
 
+
 	if ((network = networkFind(config->net.network_active)) == NULL)
 		return;
 
 	if (*network->active_buffer == ':') {		/* Second argument is likely a command */
 		nick = network->active_buffer + 1;
-		if ((hoststr = strstr(nick, "!")) == NULL)	/* This should never happen */
+		if ((hoststr = strstr(nick, "!")) == NULL)	/* This should never happen, unless it's not importment */
 			return;
 		*hoststr = 0;
 		hoststr++;
 	
-		if ((command = strstr(network->active_buffer, " ")) == NULL)	/* Eek, bad line */
+		if ((command = strstr(hoststr, " ")) == NULL)	/* Eek, bad line */
 			return;
 		*command = 0;
 		command++;
@@ -83,16 +115,21 @@ void ircLine() {
 			arg++;
 		}
 
-		if ((string = strstr(arg, " :")) == NULL)	/* No string. This is fine */
+		if (arg != NULL) {
+			if ((string = strstr(arg, " :")) == NULL)	/* No string. This is fine */
+				string = NULL;
+			else {
+				*string = 0;
+				string += 2;
+			}
+		} else
 			string = NULL;
-		else {
-			*string = 0;
-			string += 2;
+
+		if (string != NULL) {
+			if (string[strlen(string) - 1] == ' ')
+				string[strlen(string) - 1] = 0;
 		}
-
-		if (string[strlen(string) - 1] == ' ')
-			string[strlen(string) - 1] = 0;
-
+	
 		filterProcess(nick, hoststr, command, arg, string);
 	} else if (strstr(network->active_buffer, "PING ") == network->active_buffer) {		/* Aha! It's a ping! */
 		if ((arg = strstr(network->active_buffer, ":")) == NULL)	/* o_O */

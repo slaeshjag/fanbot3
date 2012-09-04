@@ -19,6 +19,12 @@
 #include "filter.h"
 
 
+#define	CONFIG_PLUGIN_NETWORK		0x1
+#define	CONFIG_PLUGIN_FILTER		0x2
+#define	CONFIG_NETWORKS			0x4
+
+#define	CONFIG_ALL			0xF
+
 typedef struct {
 	PLUGIN				plugin;
 	struct NETWORK_ENTRY		*network;

@@ -69,11 +69,13 @@ void networkPortSet(const char *name, int port);
 void networkNickSet(const char *name, const char *nick);
 void networkLayerSet(const char *name, const char *layer);
 void networkChannelAdd(const char *name, const char *channel, const char *key);
+void networkWait();
 
 void networkDeleteAll(const char *reason);
-void networkDisconnectAll(const char *name, const char *reason);
+void networkDisconnectAll(const char *reason);
 void networkDisconnect(const char *name, const char *reason);
 void networkConnect(const char *name);
+void networkConnectAll();
 void networkPluginInit(const char *name);
 void networkPlugindataDelete(const char *name);
 void networkInit();

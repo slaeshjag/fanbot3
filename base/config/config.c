@@ -1,7 +1,7 @@
 #include "config.h"
 
 
-void configProcess(const char *command, const char *arg1, const char *arg2) {
+void configProcess(const char *command, const char *arg1, const char *arg2, unsigned int what) {
 	char *network = config->parse_buf;
 
 	if (strcmp(command, "}") == 0)
@@ -19,8 +19,8 @@ void configProcess(const char *command, const char *arg1, const char *arg2) {
 			networkChannelAdd(network, arg1, arg2);
 	} else if (strcmp(command, "plugin") == 0) {
 		if (strcmp(arg1, "scan") == 0)
-			pluginCrawl(arg2);
-	} else if (strcmp(command, "network") == 0) {
+			pluginCrawl(arg2, what);
+	} else if (strcmp(command, "network") == 0 && (what & CONFIG_NETWORKS)) {
 		strncpy(config->parse_buf, arg1, 64);
 		networkAdd(arg1);
 	}
@@ -30,7 +30,7 @@ void configProcess(const char *command, const char *arg1, const char *arg2) {
 }
 
 
-int configRead(const char *path) {
+int configRead(const char *path, unsigned int what) {
 	FILE *fp;
 	char command[64], arg1[128], arg2[128], buff[512];
 
@@ -50,7 +50,7 @@ int configRead(const char *path) {
 
 		fgets(buff, 512, fp);
 		sscanf(buff, "%s %s %s\n", command, arg1, arg2);
-		configProcess(command, arg1, arg2);
+		configProcess(command, arg1, arg2, what);
 	}
 
 	return 0;
@@ -59,7 +59,7 @@ int configRead(const char *path) {
 
 void configErrorPush(const char *error) {
 	/* TODO: Make queue system */
-	fprintf(stderr, error);
+	fprintf(stderr, "%s\n", error);
 	
 	return;
 }
@@ -72,7 +72,18 @@ void *init() {
 	}
 
 	pluginInit();
-	configRead("base/fanbot3.conf");
+	configRead("base/fanbot3.conf", CONFIG_ALL);
+	networkConnectAll();
+
+	for (;;)
+		networkWait();
 
 	return NULL;
+}
+
+
+void destroy(void *handle, const char *reason) {
+	/* TODO: Implement */
+
+	return;
 }

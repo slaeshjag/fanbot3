@@ -24,13 +24,13 @@ void *filterInit(const char *name, const char *network) {
 }
 
 
-void filterDo(const char *name, void *handle, const char *from, const char *host, const char *channel, const char *message) {
+void filterDo(const char *name, void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	struct PLUGIN_FILTER_ENTRY *filter;
 
 	if ((filter = filterFind(name)) == NULL)
 		return;
 	
-	(filter->filter)(handle, from, host, channel, message);
+	(filter->filter)(handle, from, host, command, channel, message);
 	return;
 }
 
@@ -45,4 +45,15 @@ void *filterDestroy(const char *name, void *handle) {
 }
 
 
-//void filterProcess(const char *
+void filterProcess(const char *nick, const char *hoststr, const char *command, const char *arg, const char *string) {
+	struct NETWORK_ENTRY *network;
+	int i;
+
+	if ((network = networkFind(config->net.network_active)) == NULL)
+		return;
+	
+	for (i = 0; i < config->plugin.filters; i++)
+		filterDo(network->plugin[i].name, network->plugin[i].handle, nick, hoststr, command, arg, string);
+	
+	return;
+}

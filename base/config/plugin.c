@@ -96,10 +96,10 @@ void pluginAddFilter(void *lib_handle, const char *name) {
 }
 
 
-void pluginProcess(const char *path, const char *name) {
+void pluginProcess(const char *path, const char *name, unsigned int what) {
 	void *lib_handle;
 	char fname[512], *longname, *usename;
-	unsigned int (*pluginType)();
+	unsigned int (*pluginType)(), type;
 	const char *(*pluginName)();
 
 	longname = NULL;
@@ -125,18 +125,14 @@ void pluginProcess(const char *path, const char *name) {
 		return;
 	}
 
-	switch ((pluginType)()) {
-		case PLUGIN_TYPE_NETWORK:
-			pluginAddNetwork(lib_handle, (pluginName)());
-			break;
-		case PLUGIN_TYPE_FILTER:
-			pluginAddFilter(lib_handle, (pluginName)());
-			break;
-		default:
-			dlclose(lib_handle);
-			fprintf(stderr, "[CONFIG] %s/%s is of a type not implemented\n", path, name);
-			break;
-	}
+	type = (pluginType)();
+
+	if (type == PLUGIN_TYPE_NETWORK && (what | CONFIG_PLUGIN_NETWORK))
+		pluginAddNetwork(lib_handle, (pluginName)());
+	else if (type == PLUGIN_TYPE_FILTER && (what | CONFIG_PLUGIN_FILTER))
+		pluginAddFilter(lib_handle, (pluginName)());
+	else
+		dlclose(lib_handle);
 
 	return;
 }
@@ -166,7 +162,7 @@ void pluginFilterUnload() {
 }
 
 
-void pluginCrawl(const char *path) {
+void pluginCrawl(const char *path, unsigned int what) {
 	DIR *dir;
 	struct dirent *file;
 	
@@ -177,7 +173,7 @@ void pluginCrawl(const char *path) {
 		file = readdir(dir);
 		if (file == NULL)
 			break;
-		pluginProcess(path, file->d_name);
+		pluginProcess(path, file->d_name, what);
 	} while (1);
 
 	closedir(dir);

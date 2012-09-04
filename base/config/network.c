@@ -69,7 +69,7 @@ void networkChannelAdd(const char *name, const char *chan, const char *key) {
 
 	if ((channel = malloc(sizeof(struct NETWORK_CHANNEL))) == NULL)
 		return;
-	
+
 	strncpy(channel->name, chan, 128);
 	strncpy(channel->key, key, 128);
 	channel->last_sent = 0;
@@ -119,28 +119,29 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 		i = layerRead(network->layer, network->network_handle, &network->process_buffer[network->buff_pos], 511 - network->buff_pos, &error);
 		if (i <= 0) {
 			if (error == EWOULDBLOCK)
-				break;
+				break;	
 			configErrorPush("Connection reset");
 			networkDisconnect(network->name, "Socket error");
 			return;
 		}
+
+		network->process_buffer[i + network->buff_pos] = 0;
 	
-		network->process_buffer[i] = 0;
-	
-		for (j = k = 0; j < i; j++) {
-			if (network->process_buffer[j] == '\r')
+		for (j = k = 0; j < i + network->buff_pos; j++) {
+			if (network->process_buffer[j] == '\r') {
 				network->process_buffer[j] = ' ';
+			}
 			if (network->process_buffer[j] == '\n') {
 				memcpy(network->active_buffer, &network->process_buffer[k], j - k);
-				network->active_buffer[j - k + 1] = 0;
+				network->active_buffer[j - k] = 0;
 				ircLine(network);
 				k = j + 1;
 			}
 		}
 
-		memmove(network->process_buffer, &network->process_buffer[k], i - k);
-		network->process_buffer[i - k] = 0;
-		network->buff_pos = i - k;
+		memmove(network->process_buffer, &network->process_buffer[k], network->buff_pos + i - k);
+		network->process_buffer[network->buff_pos + i - k] = 0;
+		network->buff_pos = network->buff_pos + i - k;
 	} while (1);
 
 	return;
@@ -243,7 +244,7 @@ void networkDisconnect(const char *name, const char *reason) {
 }
 
 
-void networkDisconnectAll(const char *name, const char *reason) {
+void networkDisconnectAll(const char *reason) {
 	struct NETWORK_ENTRY *network;
 
 	network = config->network;
@@ -275,13 +276,30 @@ void networkConnect(const char *name) {
 	if ((flags = fcntl(network->socket, F_GETFL, 0)) == -1)
 		flags = 0;
 	fcntl(network->socket, F_SETFL, flags | O_NONBLOCK);
+
+	network->buff_pos = 0;
+	networkPluginInit(name);
 	
+	return;
+}
+
+
+void networkConnectAll() {
+	struct NETWORK_ENTRY *network;
+
+	network = config->network;
+	while (network != NULL) {
+		networkConnect(network->name);
+		network = network->next;
+	}
+
 	return;
 }
 
 
 void networkWait() {
 	struct NETWORK_ENTRY *next;
+	struct NETWORK_CHANNEL *channel;
 	int max_fd;
 	
 	next = config->network;
@@ -307,8 +325,20 @@ void networkWait() {
 	while (next != NULL) {
 		config->net.network_active = next->name;
 		if (next->ready == NETWORK_NOT_CONNECTED);
-		else if (FD_ISSET(next->socket, &config->net.read))
+		else if (FD_ISSET(next->socket, &config->net.read)) {
 			networkProcess(next);
+			if (next->ready == NETWORK_JOIN) {
+				channel = channel;
+				while (channel != NULL) {
+					ircJoin(channel->name, channel->key);
+					channel = channel->next;
+				}
+				next->ready = NETWORK_READY;
+			} else if (next->ready == NETWORK_CONNECTING) {
+				ircNick(next->nick);
+				next->ready = NETWORK_JOIN;
+			}
+		}
 		next = next->next;
 	}
 

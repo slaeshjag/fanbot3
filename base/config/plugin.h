@@ -19,7 +19,7 @@ struct PLUGIN_FILTER_ENTRY {
 	const char			*name;
 	int				trig_type;
 	void				*(*init)(const char *network);
-	void				(*filter)(void *handle, const char *from, const char *host,  const char *channel, const char *message);
+	void				(*filter)(void *handle, const char *from, const char *host, const char *command,  const char *channel, const char *message);
 	void				*(*destroy)(void *handle);
 	struct PLUGIN_FILTER_ENTRY	*next;
 };
@@ -36,7 +36,7 @@ void pluginInit();
 struct PLUGIN_NETWORK_ENTRY *pluginFindNetwork(const char *name);
 
 void pluginFilterUnload();
-void pluginCrawl(const char *path);
+void pluginCrawl(const char *path, unsigned int what);
 
 
 #endif
