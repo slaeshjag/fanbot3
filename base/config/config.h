@@ -9,11 +9,14 @@
 #include <dirent.h>
 #include <dlfcn.h>
 #include <signal.h>
+#include <time.h>
 
 #include "api.h"
 #include "plugin.h"
 #include "network.h"
 #include "layer.h"
+#include "irc.h"
+#include "filter.h"
 
 
 typedef struct {

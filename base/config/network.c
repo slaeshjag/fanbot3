@@ -101,6 +101,8 @@ void networkAdd(const char *name) {
 	*network->active_buffer = 0;
 	*network->process_buffer = 0;
 	network->buff_pos = 0;
+	network->disconnect = 0;
+	networkPluginInit(name);
 
 	network->next = config->network;
 	config->network = network;
@@ -118,7 +120,8 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 		if (i <= 0) {
 			if (error == EWOULDBLOCK)
 				break;
-			networkDisconnect(network);
+			configErrorPush("Connection reset");
+			networkDisconnect(network->name, "Socket error");
 			return;
 		}
 	
@@ -138,7 +141,7 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 		memmove(network->process_buffer, &network->process_buffer[k], i - k);
 		network->process_buffer[i - k] = 0;
 		network->buff_pos = i - k;
-	} while (i - network->buff_pos > 0);
+	} while (1);
 
 	return;
 }
@@ -151,6 +154,108 @@ void networkInit() {
 }
 
 
+void networkPlugindataDelete(const char *name) {
+	struct NETWORK_ENTRY *network;
+	int i;
+
+	if ((network = networkFind(name)) == NULL)
+		return;
+	
+	if (network->plugin == NULL)
+		return;
+
+	for (i = 0; i < config->plugin.filters; i++)
+		filterDestroy(network->plugin[i].name, network->plugin[i].handle);
+
+	free(network->plugin);
+	network->plugin = NULL;
+}
+
+
+void networkPluginInit(const char *name) {
+	struct NETWORK_ENTRY *network;
+	struct PLUGIN_FILTER_ENTRY *filter;
+	int i;
+
+	if ((network = networkFind(name)) == NULL)
+		return;
+
+	if ((network->plugin = malloc(sizeof(NETWORK_PLUGIN_DATA) * config->plugin.filters)) == NULL) {
+		configErrorPush("Unable to malloc()");
+		return;
+	}
+
+	filter = config->plugin.filter_plug;
+	for (i = 0; filter != NULL; i++) {
+		network->plugin[i].handle = filterInit(name, network->name);
+		network->plugin[i].name = filter->name;
+		filter = filter->next;
+	}
+	
+	return;
+}
+
+
+void networkDeleteAll(const char *reason) {
+	struct NETWORK_ENTRY *network, *old;
+	struct NETWORK_CHANNEL *chan, *oldchan;
+
+	network = config->network;
+	config->network = NULL;
+
+	while (network != NULL) {
+		chan = network->channel;
+		network->channel = NULL;
+		while (chan != NULL) {
+			oldchan = chan;
+			chan = chan->next;
+			free(oldchan);
+		}
+
+		networkDisconnect(network->name, reason);
+		old = network;
+		network = network->next;
+		free(old);
+	}
+
+	return;
+}
+
+
+void networkDisconnect(const char *name, const char *reason) {
+	struct NETWORK_ENTRY *network;
+
+	if ((network = networkFind(name)) == NULL)
+		return;
+	
+	if (network->ready != NETWORK_CONNECTING)
+		return;
+	
+	ircQuit(reason);
+	network->network_handle = layerDisconnect(network->layer, network->network_handle);
+	network->socket = -1;
+	network->ready = NETWORK_NOT_CONNECTED;
+	network->disconnect = time(NULL);
+
+	networkPlugindataDelete(name);
+
+	return;
+}
+
+
+void networkDisconnectAll(const char *name, const char *reason) {
+	struct NETWORK_ENTRY *network;
+
+	network = config->network;
+	while (network != NULL) {
+		networkDisconnect(network->name, reason);
+		network = network->next;
+	}
+
+	return;
+}
+
+
 void networkConnect(const char *name) {
 	struct NETWORK_ENTRY *network;
 	unsigned int flags;
@@ -158,6 +263,7 @@ void networkConnect(const char *name) {
 	if ((network = networkFind(name)) == NULL)
 		return;
 	if ((network->network_handle = layerConnect(network->layer, network->host, network->port)) == NULL) {
+		network->disconnect = time(NULL);
 		configErrorPush("Unable to connect");
 		return;
 	}
@@ -199,6 +305,7 @@ void networkWait() {
 	
 	next = config->network;
 	while (next != NULL) {
+		config->net.network_active = next->name;
 		if (next->ready == NETWORK_NOT_CONNECTED);
 		else if (FD_ISSET(next->socket, &config->net.read))
 			networkProcess(next);

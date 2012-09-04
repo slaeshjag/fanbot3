@@ -37,7 +37,7 @@ int layerRead(const char *layer, void *handle, char *buffer, int buffer_len, int
 }
 
 
-int layerWrite(const char *layer, void *handle, char *buffer, int buffer_len, int *error) {
+int layerWrite(const char *layer, void *handle, const char *buffer, int buffer_len, int *error) {
 	struct PLUGIN_NETWORK_ENTRY *network;
 
 	if ((network = pluginFindNetwork(layer)) == NULL) {

@@ -14,10 +14,16 @@
 #define	NETWORK_JOIN				3
 
 
+typedef struct {
+	void			*handle;
+	const char		*name;
+} NETWORK_PLUGIN_DATA;
+
+
 struct NETWORK_CHANNEL {
 	char			name[128];
 	char			key[128];
-	int			last_sent;
+	time_t			last_sent;
 	int			cap;
 	struct NETWORK_CHANNEL	*next;
 };
@@ -35,9 +41,12 @@ struct NETWORK_ENTRY {
 	int			buff_pos;
 
 	int			ready;
+	time_t			disconnect;
 	int			socket;
 	void			*network_handle;
 	struct NETWORK_CHANNEL	*channel;
+
+	NETWORK_PLUGIN_DATA	*plugin;
 
 	struct NETWORK_ENTRY	*next;
 };
@@ -46,8 +55,13 @@ struct NETWORK_ENTRY {
 typedef struct {
 	fd_set			read;
 	struct timeval		time;
+	const char		*network_active;
 } NETWORK_MAIN;
 
+
+#ifdef __CONFIG_H__
+struct NETWORK_ENTRY *networkFind(const char *name);
+#endif
 
 void networkAdd(const char *name);
 void networkHostSet(const char *name, const char *host);
@@ -55,6 +69,13 @@ void networkPortSet(const char *name, int port);
 void networkNickSet(const char *name, const char *nick);
 void networkLayerSet(const char *name, const char *layer);
 void networkChannelAdd(const char *name, const char *channel, const char *key);
+
+void networkDeleteAll(const char *reason);
+void networkDisconnectAll(const char *name, const char *reason);
+void networkDisconnect(const char *name, const char *reason);
+void networkConnect(const char *name);
+void networkPluginInit(const char *name);
+void networkPlugindataDelete(const char *name);
 void networkInit();
 
 

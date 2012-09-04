@@ -1,9 +1,11 @@
 #include "config.h"
 
 
+
 void pluginInit() {
 	config->plugin.network_plug = NULL;
 	config->plugin.filter_plug = NULL;
+	config->plugin.filters = 0;
 
 	return;
 }
@@ -33,6 +35,7 @@ void pluginAddNetwork(void *lib_handle, const char *name) {
 
 	plugin->next = config->plugin.network_plug;
 	config->plugin.network_plug = plugin;
+	config->plugin.filters++;
 
 	fprintf(stderr, "Debug: Network plugin %s added\n", name);
 
@@ -133,6 +136,30 @@ void pluginProcess(const char *path, const char *name) {
 			dlclose(lib_handle);
 			fprintf(stderr, "[CONFIG] %s/%s is of a type not implemented\n", path, name);
 			break;
+	}
+
+	return;
+}
+
+
+void pluginFilterUnload() {
+	struct PLUGIN_NETWORK_ENTRY *network;
+	struct PLUGIN_FILTER_ENTRY *filter, *old;
+
+	network = config->plugin.network_plug;
+	while (network != NULL) {
+		networkPlugindataDelete(network->name);
+		network = network->next;
+	}
+
+	config->plugin.filters = 0;
+	filter = config->plugin.filter_plug;
+	config->plugin.filter_plug = NULL;
+	while (filter != NULL) {
+		dlclose(filter->lib_handle);
+		old = filter;
+		filter = filter->next;
+		free(old);
 	}
 
 	return;
