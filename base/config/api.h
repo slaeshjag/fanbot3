@@ -3,6 +3,9 @@
 
 #include <errno.h>
 
+#ifndef __CONFIG_H__
+#include <config/irc.h>
+#endif
 
 #define		PLUGIN_TYPE_NETWORK		0x1
 #define		PLUGIN_TYPE_FILTER		0x2
@@ -16,6 +19,7 @@
 
 
 void configErrorPush(const char *err);
+const char *networkNick();
 
 
 /* Common API for plugins */
@@ -36,7 +40,7 @@ const char *pluginName();
 #ifndef __FILTER_H__
 	/* API for filter plugins */
 	void *pluginDoInit(const char *network);
-	void pluginFilter(void *handle, const char *from, const char *host, const char *channel, const char *message);
+	void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message);
 	void *pluginDestroy(void *handle);
 #endif
 

@@ -11,6 +11,7 @@
 
 typedef struct {
 	void			*(*init)();
+	void			(*reload)();
 	int			(*destroy)(void *handle, const char *reason);
 	void			*library;
 	void			*handle;

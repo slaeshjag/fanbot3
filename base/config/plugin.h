@@ -17,7 +17,6 @@ struct PLUGIN_NETWORK_ENTRY {
 struct PLUGIN_FILTER_ENTRY {
 	void				*lib_handle;
 	const char			*name;
-	int				trig_type;
 	void				*(*init)(const char *network);
 	void				(*filter)(void *handle, const char *from, const char *host, const char *command,  const char *channel, const char *message);
 	void				*(*destroy)(void *handle);
@@ -36,6 +35,7 @@ void pluginInit();
 struct PLUGIN_NETWORK_ENTRY *pluginFindNetwork(const char *name);
 
 void pluginFilterUnload();
+void pluginNetworkUnload(const char *reason);
 void pluginCrawl(const char *path, unsigned int what);
 
 

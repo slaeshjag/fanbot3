@@ -27,8 +27,10 @@ void *filterInit(const char *name, const char *network) {
 void filterDo(const char *name, void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	struct PLUGIN_FILTER_ENTRY *filter;
 
-	if ((filter = filterFind(name)) == NULL)
+	if ((filter = filterFind(name)) == NULL) {
+		fprintf(stderr, "Filter does not exist!\n");
 		return;
+	}
 	
 	(filter->filter)(handle, from, host, command, channel, message);
 	return;

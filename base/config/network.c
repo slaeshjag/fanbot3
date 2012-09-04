@@ -202,9 +202,9 @@ void networkDeleteAll(const char *reason) {
 	struct NETWORK_CHANNEL *chan, *oldchan;
 
 	network = config->network;
-	config->network = NULL;
 
 	while (network != NULL) {
+		config->net.network_active = network->name;
 		chan = network->channel;
 		network->channel = NULL;
 		while (chan != NULL) {
@@ -218,6 +218,7 @@ void networkDeleteAll(const char *reason) {
 		network = network->next;
 		free(old);
 	}
+	config->network = NULL;
 
 	return;
 }
@@ -226,15 +227,15 @@ void networkDeleteAll(const char *reason) {
 void networkDisconnect(const char *name, const char *reason) {
 	struct NETWORK_ENTRY *network;
 
-	if ((network = networkFind(name)) == NULL)
+	if ((network = networkFind(name)) == NULL) 
 		return;
 	
-	if (network->ready != NETWORK_CONNECTING)
+	if (network->ready == NETWORK_NOT_CONNECTED)
 		return;
 	
 	ircQuit(reason);
 	network->network_handle = layerDisconnect(network->layer, network->network_handle);
-	network->socket = -1;
+	close(network->socket);
 	network->ready = NETWORK_NOT_CONNECTED;
 	network->disconnect = time(NULL);
 
@@ -249,6 +250,7 @@ void networkDisconnectAll(const char *reason) {
 
 	network = config->network;
 	while (network != NULL) {
+		config->net.network_active = network->name;
 		networkDisconnect(network->name, reason);
 		network = network->next;
 	}
@@ -297,6 +299,16 @@ void networkConnectAll() {
 }
 
 
+const char *networkNick() {
+	struct NETWORK_ENTRY *network;
+
+	network = config->network;
+	if ((network = networkFind(config->net.network_active)) == NULL)
+		return "Unknown";
+	return network->nick;
+}
+
+
 void networkWait() {
 	struct NETWORK_ENTRY *next;
 	struct NETWORK_CHANNEL *channel;
@@ -327,17 +339,17 @@ void networkWait() {
 		if (next->ready == NETWORK_NOT_CONNECTED);
 		else if (FD_ISSET(next->socket, &config->net.read)) {
 			networkProcess(next);
-			if (next->ready == NETWORK_JOIN) {
-				channel = channel;
+			if (next->ready == NETWORK_CONNECTING) {
+				ircNick(next->nick);
+				next->ready = NETWORK_JOIN;
+			}
+		} else if (next->ready == NETWORK_JOIN) {
+				channel = next->channel;
 				while (channel != NULL) {
 					ircJoin(channel->name, channel->key);
 					channel = channel->next;
 				}
 				next->ready = NETWORK_READY;
-			} else if (next->ready == NETWORK_CONNECTING) {
-				ircNick(next->nick);
-				next->ready = NETWORK_JOIN;
-			}
 		}
 		next = next->next;
 	}

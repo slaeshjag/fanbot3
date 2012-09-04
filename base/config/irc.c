@@ -98,7 +98,7 @@ void ircLine() {
 
 	if (*network->active_buffer == ':') {		/* Second argument is likely a command */
 		nick = network->active_buffer + 1;
-		if ((hoststr = strstr(nick, "!")) == NULL)	/* This should never happen, unless it's not importment */
+		if ((hoststr = strstr(nick, "!")) == NULL)	/* This should never happen, unless it's not important */
 			return;
 		*hoststr = 0;
 		hoststr++;

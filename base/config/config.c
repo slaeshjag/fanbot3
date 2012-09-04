@@ -74,16 +74,30 @@ void *init() {
 	pluginInit();
 	configRead("base/fanbot3.conf", CONFIG_ALL);
 	networkConnectAll();
+	config->reload = 0;
 
-	for (;;)
+	for (;!config->reload;)
 		networkWait();
 
-	return NULL;
+	return config;
+}
+
+
+void reload() {
+	config->reload = 1;
+
+	return;
 }
 
 
 void destroy(void *handle, const char *reason) {
 	/* TODO: Implement */
+
+	fprintf(stderr, "Destroying myself..\n");
+	pluginNetworkUnload(reason);
+	pluginFilterUnload();
+
+	free(config);
 
 	return;
 }

@@ -80,5 +80,7 @@ void networkPluginInit(const char *name);
 void networkPlugindataDelete(const char *name);
 void networkInit();
 
+const char *networkNick();
+
 
 #endif

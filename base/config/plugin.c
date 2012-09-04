@@ -35,7 +35,6 @@ void pluginAddNetwork(void *lib_handle, const char *name) {
 
 	plugin->next = config->plugin.network_plug;
 	config->plugin.network_plug = plugin;
-	config->plugin.filters++;
 
 	fprintf(stderr, "Debug: Network plugin %s added\n", name);
 
@@ -60,12 +59,6 @@ struct PLUGIN_NETWORK_ENTRY *pluginFindNetwork(const char *name) {
 
 void pluginAddFilter(void *lib_handle, const char *name) {
 	struct PLUGIN_FILTER_ENTRY *plugin;
-	int (*trig_type)();
-
-	if ((trig_type = dlsym(lib_handle, "pluginFilterType")) == NULL) {
-		dlclose(lib_handle);
-		return;
-	}
 
 	if ((plugin = malloc(sizeof(struct PLUGIN_NETWORK_ENTRY))) == NULL) {
 		dlclose(lib_handle);
@@ -75,7 +68,6 @@ void pluginAddFilter(void *lib_handle, const char *name) {
 
 	plugin->lib_handle = lib_handle;
 	plugin->name = name;
-	plugin->trig_type = (trig_type)();
 
 	plugin->init = dlsym(lib_handle, "pluginDoInit");
 	plugin->filter = dlsym(lib_handle, "pluginFilter");
@@ -89,6 +81,7 @@ void pluginAddFilter(void *lib_handle, const char *name) {
 
 	plugin->next = config->plugin.filter_plug;
 	config->plugin.filter_plug = plugin;
+	config->plugin.filters++;
 
 	fprintf(stderr, "Debug: Filter plugin %s added\n", name);
 
@@ -155,6 +148,24 @@ void pluginFilterUnload() {
 		dlclose(filter->lib_handle);
 		old = filter;
 		filter = filter->next;
+		free(old);
+	}
+
+	return;
+}
+
+
+void pluginNetworkUnload(const char *reason) {
+	struct PLUGIN_NETWORK_ENTRY *network, *old;
+	
+	networkDeleteAll(reason);
+
+	network = config->plugin.network_plug;
+	config->plugin.network_plug = NULL;
+	while (network != NULL) {
+		dlclose(network->lib_handle);
+		old = network;
+		network = network->next;
 		free(old);
 	}
 

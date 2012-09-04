@@ -30,6 +30,7 @@ typedef struct {
 	struct NETWORK_ENTRY		*network;
 	NETWORK_MAIN			net;
 	char				parse_buf[64];
+	int				reload;
 } CONFIG;
 
 
