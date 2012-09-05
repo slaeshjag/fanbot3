@@ -11,8 +11,6 @@ void loadSymbols() {
 
 
 void reload(int signal_num) {
-	char num[64];
-
 	(fanbot.reload)();
 
 	return;

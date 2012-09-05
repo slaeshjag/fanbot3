@@ -188,7 +188,7 @@ void networkPluginInit(const char *name) {
 
 	filter = config->plugin.filter_plug;
 	for (i = 0; filter != NULL; i++) {
-		network->plugin[i].handle = filterInit(name, network->name);
+		network->plugin[i].handle = filterInit(filter->name, network->name);
 		network->plugin[i].name = filter->name;
 		filter = filter->next;
 	}
