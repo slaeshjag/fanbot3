@@ -2,7 +2,7 @@
 
 
 const char *ircGetIntendedChannel(const char *channel, const char *from) {
-	if (strstr(channel, networkNick()) == 0)
+	if (strcmp(channel, networkNick()) == 0)
 		return from;
 	return channel;
 }
