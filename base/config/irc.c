@@ -1,6 +1,13 @@
 #include "config.h"
 
 
+const char *ircGetIntendedChannel(const char *channel, const char *from) {
+	if (strstr(channel, networkNick()) == 0)
+		return from;
+	return channel;
+}
+
+
 void ircMessage(const char *channel, const char *message) {
 	struct NETWORK_ENTRY *network;
 	char sendbuff[512];
@@ -10,9 +17,9 @@ void ircMessage(const char *channel, const char *message) {
 	if ((network = networkFind(config->net.network_active)) == NULL)
 		return;
 
-	message_len = 512 - 3; /* \r\n + NULL-terminator */
-	message_len -= (strlen("PRIVMSG ") + 1); /* extra char for space after channel */
-	message_len -= (strlen(channel) + 1); /* Extra char for message ':' */
+	message_len = 512 - 3;	/* \r\n + NULL-terminator */
+	message_len -= (strlen("PRIVMSG ") + 1);	/* extra char for space after channel */
+	message_len -= (strlen(channel) + 1);	/* Extra char for message ':' */
 	
 	if (strlen(message) > message_len) {
 		memcpy(message_copy, message, message_len);

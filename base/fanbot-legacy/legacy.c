@@ -121,6 +121,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		return;
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
+	channel = ircGetIntendedChannel(channel, from);
 	for (i = 0; i < legacy->commands; i++) {
 		sscanf(message, "%s", buff);
 		if (strcmp(buff, legacy->command[i]) == 0) {
