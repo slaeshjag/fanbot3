@@ -17,6 +17,10 @@ void configProcess(const char *command, const char *arg1, const char *arg2, unsi
 			networkPortSet(network, atoi(arg1));
 		else if (strcmp(command, "channel") == 0)
 			networkChannelAdd(network, arg1, arg2);
+		else if (strcmp(command, "reconnect") == 0) {
+			if (strcmp(arg1, "delay") == 0)
+				networkReconnDelaySet(network, atoi(arg2));
+		}
 	} else if (strcmp(command, "plugin") == 0) {
 		if (strcmp(arg1, "scan") == 0)
 			pluginCrawl(arg2, what);

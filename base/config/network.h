@@ -46,6 +46,7 @@ struct NETWORK_ENTRY {
 	int			buff_pos;
 
 	int			ready;
+	int			reconnect_delay;
 	time_t			disconnect;
 	int			socket;
 	void			*network_handle;
@@ -73,6 +74,7 @@ void networkHostSet(const char *name, const char *host);
 void networkPortSet(const char *name, int port);
 void networkNickSet(const char *name, const char *nick);
 void networkLayerSet(const char *name, const char *layer);
+void networkReconnDelaySet(const char *name, int delay);
 void networkChannelAdd(const char *name, const char *channel, const char *key);
 void networkWait();
 

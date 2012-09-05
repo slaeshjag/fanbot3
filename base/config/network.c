@@ -56,6 +56,17 @@ void networkPortSet(const char *name, int port) {
 }
 
 
+void networkReconnDelaySet(const char *name, int delay) {
+	struct NETWORK_ENTRY *next;
+
+	if ((next = networkFind(name)) == NULL)
+		return;
+	next->reconnect_delay = delay;
+	
+	return;
+}
+
+
 void networkNickSet(const char *name, const char *nick) {
 	struct NETWORK_ENTRY *next;
 
@@ -116,6 +127,7 @@ void networkAdd(const char *name) {
 	network->next = 0;
 	network->socket = -1;
 	network->ready = NETWORK_NOT_CONNECTED;
+	network->reconnect_delay = 600;
 	*network->active_buffer = 0;
 	*network->process_buffer = 0;
 	network->buff_pos = 0;
@@ -395,6 +407,25 @@ void networkProcessBuffers() {
 }
 
 
+void networkReconnect() {
+	struct NETWORK_ENTRY *next;
+	time_t now;
+
+	now = time(NULL);
+
+	if ((next = networkFind(config->net.network_active)) == NULL)
+		return;
+	if (next->ready != NETWORK_NOT_CONNECTED)
+		return;
+	if (now - next->disconnect < next->reconnect_delay)
+		return;
+	
+	networkConnect(config->net.network_active);
+
+	return;
+}
+
+
 void networkWait() {
 	struct NETWORK_ENTRY *next;
 	struct NETWORK_CHANNEL *channel;
@@ -440,6 +471,7 @@ void networkWait() {
 				next->ready = NETWORK_READY;
 		}
 		networkProcessBuffers();
+		networkReconnect();
 		next = next->next;
 	}
 
