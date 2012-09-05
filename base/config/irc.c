@@ -12,7 +12,7 @@ void ircMessage(const char *channel, const char *message) {
 	struct NETWORK_ENTRY *network;
 	char sendbuff[512];
 	char message_copy[512];
-	int message_len, error;
+	int message_len;
 
 	if ((network = networkFind(config->net.network_active)) == NULL)
 		return;
@@ -28,7 +28,8 @@ void ircMessage(const char *channel, const char *message) {
 		sprintf(message_copy, "%s", message);
 	
 	sprintf(sendbuff, "PRIVMSG %s :%s\r\n", channel, message_copy);
-	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
+	networkPushLine(config->net.network_active, channel, sendbuff);
+//	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
 
 	return;
 }

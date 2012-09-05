@@ -7,11 +7,13 @@
 
 
 #define	NETWORK_CHANNEL_SEND_CAP		5
+#define	NETWORK_BUFFER_QUEUE			5
 
 #define	NETWORK_NOT_CONNECTED			0
 #define	NETWORK_CONNECTING			1
 #define	NETWORK_READY				2
 #define	NETWORK_JOIN				3
+
 
 
 typedef struct {
@@ -25,6 +27,9 @@ struct NETWORK_CHANNEL {
 	char			key[128];
 	time_t			last_sent;
 	int			cap;
+	char			buffer[513 * NETWORK_BUFFER_QUEUE];
+	int			start;
+	int			end;
 	struct NETWORK_CHANNEL	*next;
 };
 
@@ -36,8 +41,8 @@ struct NETWORK_ENTRY {
 	char			nick[64];
 	char			layer[64];
 
-	char			process_buffer[512];
-	char			active_buffer[512];
+	char			process_buffer[513];
+	char			active_buffer[513];
 	int			buff_pos;
 
 	int			ready;
@@ -70,6 +75,8 @@ void networkNickSet(const char *name, const char *nick);
 void networkLayerSet(const char *name, const char *layer);
 void networkChannelAdd(const char *name, const char *channel, const char *key);
 void networkWait();
+
+void networkPushLine(const char *network, const char *channel, const char *buffer);
 
 void networkDeleteAll(const char *reason);
 void networkDisconnectAll(const char *reason);
