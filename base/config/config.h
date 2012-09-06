@@ -31,7 +31,10 @@ typedef struct {
 	NETWORK_MAIN			net;
 	char				parse_buf[64];
 	int				reload;
+	int				reload_filters;
 } CONFIG;
+
+int configRead(const char *path, unsigned int what);
 
 
 CONFIG *config;

@@ -59,3 +59,16 @@ void filterProcess(const char *nick, const char *hoststr, const char *command, c
 	
 	return;
 }
+
+
+void filterReload(const char *path) {
+
+	pluginFilterUnload();
+	configRead(path, CONFIG_PLUGIN_FILTER);
+	networkPluginInitAll();
+
+	config->reload_filters = 0;
+
+	return;
+}
+	

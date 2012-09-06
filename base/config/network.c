@@ -104,6 +104,7 @@ void networkChannelAdd(const char *name, const char *chan, const char *key) {
 	channel->last_sent = 0;
 	channel->cap = NETWORK_CHANNEL_SEND_CAP;
 	channel->next = network->channel;
+	channel->start = channel->end = 0;
 	network->channel = channel;
 
 	fprintf(stderr, "Debug: Added channel %s <%s> to network %s\n", chan, key, name);
@@ -132,7 +133,6 @@ void networkAdd(const char *name) {
 	*network->process_buffer = 0;
 	network->buff_pos = 0;
 	network->disconnect = 0;
-	networkPluginInit(name);
 
 	network->next = config->network;
 	config->network = network;
@@ -210,6 +210,8 @@ void networkPluginInit(const char *name) {
 
 	if ((network = networkFind(name)) == NULL)
 		return;
+	if (network->ready == NETWORK_NOT_CONNECTED)
+		return;
 
 	if ((network->plugin = malloc(sizeof(NETWORK_PLUGIN_DATA) * config->plugin.filters)) == NULL) {
 		configErrorPush("Unable to malloc()");
@@ -221,6 +223,19 @@ void networkPluginInit(const char *name) {
 		network->plugin[i].handle = filterInit(filter->name, network->name);
 		network->plugin[i].name = filter->name;
 		filter = filter->next;
+	}
+	
+	return;
+}
+
+
+void networkPluginInitAll() {
+	struct NETWORK_ENTRY *network;
+	
+	network = config->network;
+	while (network != NULL) {
+		networkPluginInit(network->name);
+		network = network->next;
 	}
 	
 	return;
@@ -321,9 +336,12 @@ void networkConnectAll() {
 
 	network = config->network;
 	while (network != NULL) {
+		config->net.network_active = network->name;
 		networkConnect(network->name);
 		network = network->next;
 	}
+
+	config->net.network_active = "CONFIG";
 
 	return;
 }

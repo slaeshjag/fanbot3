@@ -14,15 +14,18 @@ const char *pluginName() {
 char *pluginURLEscapeUgly(const char *string) {
 	char *new;
 	int i;
+	const unsigned char *string_u;
+
+	string_u = (const unsigned char *) string;
 
 	if ((new = malloc(strlen(string) * 3 + 1)) == NULL)
 		return NULL;
 	
-	for (i = 0; string[i] != 0; i++) {
-		if (string[i] == ' ')
+	for (i = 0; string_u[i] != 0; i++) {
+		if (string_u[i] == ' ')
 			sprintf(&new[i*3], "%%%X", ';');
 		else
-			sprintf(&new[i*3], "%%%X", string[i]);
+			sprintf(&new[i*3], "%%%X", string_u[i]);
 	}
 	return new;
 }
@@ -131,6 +134,12 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 			pluginProcessHit(channel, message, buff);
 			return;
 		}
+	}
+
+	if (strcmp(message, "!update!") == 0) {
+		sprintf(buff, "%s: Requesting complete reload of filter plugins", from);
+		ircMessage(channel, buff);
+		configFilterReload();
 	}
 
 	return;

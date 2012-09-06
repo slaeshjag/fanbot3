@@ -39,7 +39,8 @@ int configRead(const char *path, unsigned int what) {
 	char command[64], arg1[128], arg2[128], buff[512];
 
 	*config->parse_buf = 0;
-	networkInit();
+	if (what == CONFIG_ALL)
+		networkInit();
 
 	if ((fp = fopen(path, "r")) == NULL) {
 		fprintf(stderr, "[CONFIG] Unable to open configuration file %s. We're doomed\n", path);
@@ -62,8 +63,7 @@ int configRead(const char *path, unsigned int what) {
 
 
 void configErrorPush(const char *error) {
-	/* TODO: Make queue system */
-	fprintf(stderr, "%s\n", error);
+	fprintf(stderr, "[%s] %s\n", config->net.network_active, error);
 	
 	return;
 }
@@ -75,13 +75,21 @@ void *init() {
 		return NULL;
 	}
 
+	config->net.network_active = "CONFIG";
+
 	pluginInit();
 	configRead("base/fanbot3.conf", CONFIG_ALL);
 	networkConnectAll();
-	config->reload = 0;
+	config->reload = config->reload_filters = 0;
 
-	for (;!config->reload;)
+	for (;!config->reload;) {
 		networkWait();
+		if (config->reload_filters) {
+			config->net.network_active = "CONFIG";
+			filterReload("base/fanbot3.conf");
+		}
+	}
+
 
 	return config;
 }
@@ -90,6 +98,13 @@ void *init() {
 void reload() {
 	config->reload = 1;
 
+	return;
+}
+
+
+void configFilterReload() {
+	config->reload_filters = 1;
+	
 	return;
 }
 

@@ -21,6 +21,7 @@
 void configErrorPush(const char *err);
 const char *networkNick();
 const char *ircGetIntendedChannel(const char *channel, const char *from);
+void configFilterReload();
 
 /* Common API for plugins */
 unsigned int pluginType();

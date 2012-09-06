@@ -120,9 +120,9 @@ void pluginProcess(const char *path, const char *name, unsigned int what) {
 
 	type = (pluginType)();
 
-	if (type == PLUGIN_TYPE_NETWORK && (what | CONFIG_PLUGIN_NETWORK))
+	if (type == PLUGIN_TYPE_NETWORK && (what & CONFIG_PLUGIN_NETWORK))
 		pluginAddNetwork(lib_handle, (pluginName)());
-	else if (type == PLUGIN_TYPE_FILTER && (what | CONFIG_PLUGIN_FILTER))
+	else if (type == PLUGIN_TYPE_FILTER && (what & CONFIG_PLUGIN_FILTER))
 		pluginAddFilter(lib_handle, (pluginName)());
 	else
 		dlclose(lib_handle);
@@ -132,10 +132,10 @@ void pluginProcess(const char *path, const char *name, unsigned int what) {
 
 
 void pluginFilterUnload() {
-	struct PLUGIN_NETWORK_ENTRY *network;
+	struct NETWORK_ENTRY *network;
 	struct PLUGIN_FILTER_ENTRY *filter, *old;
-
-	network = config->plugin.network_plug;
+	
+	network = config->network;
 	while (network != NULL) {
 		networkPlugindataDelete(network->name);
 		network = network->next;

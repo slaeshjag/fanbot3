@@ -86,6 +86,7 @@ void networkDisconnect(const char *name, const char *reason);
 void networkConnect(const char *name);
 void networkConnectAll();
 void networkPluginInit(const char *name);
+void networkPluginInitAll();
 void networkPlugindataDelete(const char *name);
 void networkInit();
 
