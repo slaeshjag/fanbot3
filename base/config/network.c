@@ -147,6 +147,8 @@ void networkAdd(const char *name) {
 void networkProcess(struct NETWORK_ENTRY *network) {
 	int i, j, k, error = 0;
 	do {
+		if (network->ready == NETWORK_NOT_CONNECTED)
+			break;
 		i = layerRead(network->layer, network->network_handle, &network->process_buffer[network->buff_pos], 512 - network->buff_pos, &error);
 		if (i <= 0) {
 			if (error == EWOULDBLOCK)
@@ -438,7 +440,8 @@ void networkReconnect() {
 		return;
 	if (now - next->disconnect < next->reconnect_delay)
 		return;
-	
+
+	configErrorPush("Reconnecting now");
 	networkConnect(config->net.network_active);
 
 	return;
@@ -449,12 +452,10 @@ void networkWait() {
 	struct NETWORK_ENTRY *next;
 	struct NETWORK_CHANNEL *channel;
 	int max_fd;
-	time_t now;
 	
 	next = config->network;
 	FD_ZERO(&config->net.read);
 	max_fd = 0;
-	now = time(NULL);
 
 	while (next != NULL) {
 		if (next->ready != NETWORK_NOT_CONNECTED) {
@@ -477,12 +478,14 @@ void networkWait() {
 		if (next->ready == NETWORK_NOT_CONNECTED);
 		else if (FD_ISSET(next->socket, &config->net.read)) {
 			networkProcess(next);
+			if (next->ready == NETWORK_NOT_CONNECTED)
+				continue;
 			if (next->ready == NETWORK_CONNECTING) {
 				ircNick(next->nick);
 				next->disconnect = time(NULL);
 				next->ready = NETWORK_JOIN;
 			}
-		} else if (next->ready == NETWORK_JOIN && now - next->disconnect >= 2) {
+		} else if (next->ready == NETWORK_JOIN) {
 				channel = next->channel;
 				while (channel != NULL) {
 					ircJoin(channel->name, channel->key);

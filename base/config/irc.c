@@ -1,6 +1,24 @@
 #include "config.h"
 
 
+int ircLogic(const char *command) {		/* To detect errors etc. */
+	struct NETWORK_ENTRY *network;
+
+	if ((network = networkFind(config->net.network_active)) == NULL)
+		return 0;
+	if (strcmp(command, IRC_NICK_IN_USE) == 0) {
+		configErrorPush("Configured nickname is in use. Disconnecting.");
+		networkDisconnect(config->net.network_active, "Nickname in use. You shouldn't see this");
+		return -1;
+	} else if (strcmp(command, IRC_NICK_NOT_REGISTERED) == 0) {
+		configErrorPush("Woops, seems like we where a bit quick with joining. Trying again");
+		network->ready = NETWORK_CONNECTING;
+	}
+
+	return 0;
+}
+
+
 const char *ircGetIntendedChannel(const char *channel, const char *from) {
 	if (strcmp(channel, networkNick()) == 0)
 		return from;
@@ -107,9 +125,11 @@ void ircLine() {
 	if (*network->active_buffer == ':') {		/* Second argument is likely a command */
 		nick = network->active_buffer + 1;
 		if ((hoststr = strstr(nick, "!")) == NULL)	/* This should never happen, unless it's not important */
-			return;
-		*hoststr = 0;
-		hoststr++;
+			hoststr = nick;
+		else {
+			*hoststr = 0;
+			hoststr++;
+		}
 	
 		if ((command = strstr(hoststr, " ")) == NULL)	/* Eek, bad line */
 			return;
@@ -139,6 +159,8 @@ void ircLine() {
 		}
 		
 		stringToUpper(arg);
+		if (ircLogic(command) < 0)
+			return;
 		filterProcess(nick, hoststr, command, arg, string);
 	} else if (strstr(network->active_buffer, "PING ") == network->active_buffer) {		/* Aha! It's a ping! */
 		if ((arg = strstr(network->active_buffer, ":")) == NULL)	/* o_O */

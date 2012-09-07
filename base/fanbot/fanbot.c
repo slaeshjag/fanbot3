@@ -27,10 +27,10 @@ int main(int argc, char **argv) {
 		}
 		loadSymbols();
 		fanbot.handle = (fanbot.init)();
-		(fanbot.destroy)(fanbot.handle, "Shutting down - init() returned");
+		(fanbot.destroy)(fanbot.handle, "SIGUSR1 received - Bot is going down for complete reload");
 		dlclose(fanbot.library);
 	}
-	fprintf(stderr, "init() returned. This shouldn't be possible.\n");
+	fprintf(stderr, "THE WORLD IS GOING UNDER! INFINITE LOOPS AREN'T INFINITE ANYMORE! SAVE YOURSELF! ETC!!\n");
 
 	return -1;
 }
