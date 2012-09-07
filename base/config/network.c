@@ -100,6 +100,7 @@ void networkChannelAdd(const char *name, const char *chan, const char *key) {
 		return;
 
 	strncpy(channel->name, chan, 128);
+	stringToUpper(channel->name);
 	strncpy(channel->key, key, 128);
 	channel->last_sent = 0;
 	channel->cap = NETWORK_CHANNEL_SEND_CAP;
@@ -365,8 +366,7 @@ void networkPushLine(const char *network, const char *channel, const char *buffe
 	
 	if ((network_e = networkFind(network)) == NULL)
 		return;
-	if ((channel_e = networkChannel(network, channel)) == NULL)
-		return;
+	if ((channel_e = networkChannel(network, channel)) == NULL);
 	else {
 		i = channel_e->end;
 		if ((i + 1) % NETWORK_BUFFER_QUEUE == channel_e->start)
@@ -383,6 +383,7 @@ void networkPushLine(const char *network, const char *channel, const char *buffe
 		}
 	
 		channel_e->cap--;
+
 		layerWrite(network_e->layer, network_e->network_handle, buffer, strlen(buffer), &error);
 
 		return;

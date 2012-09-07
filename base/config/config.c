@@ -120,3 +120,17 @@ void destroy(void *handle, const char *reason) {
 
 	return;
 }
+
+
+void stringToUpper(char *string) {
+	int i;
+
+	if (string == NULL)
+		return;
+
+	for (i = 0; string[i] != 0; i++)
+		if (string[i] >= 'a' && string[i] <= 'z')
+			string[i] -= ('a' - 'A');
+	
+	return;
+}

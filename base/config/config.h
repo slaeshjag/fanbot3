@@ -35,6 +35,7 @@ typedef struct {
 } CONFIG;
 
 int configRead(const char *path, unsigned int what);
+void stringToUpper(char *string);
 
 
 CONFIG *config;

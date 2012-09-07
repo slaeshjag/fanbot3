@@ -136,6 +136,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		}
 	}
 
+
 	if (strcmp(message, "!update!") == 0) {
 		sprintf(buff, "%s: Requesting complete reload of filter plugins", from);
 		ircMessage(channel, buff);

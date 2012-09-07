@@ -137,7 +137,8 @@ void ircLine() {
 			if (string[strlen(string) - 1] == ' ')
 				string[strlen(string) - 1] = 0;
 		}
-	
+		
+		stringToUpper(arg);
 		filterProcess(nick, hoststr, command, arg, string);
 	} else if (strstr(network->active_buffer, "PING ") == network->active_buffer) {		/* Aha! It's a ping! */
 		if ((arg = strstr(network->active_buffer, ":")) == NULL)	/* o_O */
