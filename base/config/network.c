@@ -449,10 +449,12 @@ void networkWait() {
 	struct NETWORK_ENTRY *next;
 	struct NETWORK_CHANNEL *channel;
 	int max_fd;
+	time_t now;
 	
 	next = config->network;
 	FD_ZERO(&config->net.read);
 	max_fd = 0;
+	now = time(NULL);
 
 	while (next != NULL) {
 		if (next->ready != NETWORK_NOT_CONNECTED) {
@@ -477,9 +479,10 @@ void networkWait() {
 			networkProcess(next);
 			if (next->ready == NETWORK_CONNECTING) {
 				ircNick(next->nick);
+				next->disconnect = time(NULL);
 				next->ready = NETWORK_JOIN;
 			}
-		} else if (next->ready == NETWORK_JOIN) {
+		} else if (next->ready == NETWORK_JOIN && now - next->disconnect >= 2) {
 				channel = next->channel;
 				while (channel != NULL) {
 					ircJoin(channel->name, channel->key);
