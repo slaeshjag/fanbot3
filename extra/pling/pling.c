@@ -91,6 +91,7 @@ struct MESSAGE_BUFFER *messageGetBuffer(MAIN *m, int id) {
 	while (buffer != NULL) {
 		if (buffer->id == id)
 			return buffer;
+		buffer = buffer->next;
 	}
 
 	return NULL;
