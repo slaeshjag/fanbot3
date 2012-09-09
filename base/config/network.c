@@ -148,7 +148,7 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 	int i, j, k, error = 0;
 	do {
 		if (network->ready == NETWORK_NOT_CONNECTED)
-			break;
+			return;
 		i = layerRead(network->layer, network->network_handle, &network->process_buffer[network->buff_pos], 512 - network->buff_pos, &error);
 		if (i <= 0) {
 			if (error == EWOULDBLOCK)
@@ -177,6 +177,8 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 		network->buff_pos = network->buff_pos + i - k;
 	} while (1);
 
+	timerProcess();
+
 	return;
 }
 
@@ -185,6 +187,24 @@ void networkInit() {
 	config->network = NULL;
 
 	return;
+}
+
+
+NETWORK_PLUGIN_DATA *networkPluginDataGet(const char *name) {
+	struct NETWORK_ENTRY *network;
+	int i;
+
+	if ((network = networkFind(config->net.network_active)) == NULL)
+		return NULL;
+	if (network->plugin == NULL)
+		return NULL;
+	
+	for (i = 0; i < config->plugin.filters; i++) {
+		if (strcmp(network->plugin[i].name, name) == 0)
+			return &network->plugin[i];
+	}
+
+	return NULL;
 }
 
 
@@ -287,6 +307,7 @@ void networkDisconnect(const char *name, const char *reason) {
 	network->ready = NETWORK_NOT_CONNECTED;
 	network->disconnect = time(NULL);
 
+	timerDeleteAll();
 	networkPlugindataDelete(name);
 
 	return;
@@ -328,6 +349,7 @@ void networkConnect(const char *name) {
 	fcntl(network->socket, F_SETFL, flags | O_NONBLOCK);
 
 	network->buff_pos = 0;
+	timerInit();
 	networkPluginInit(name);
 	
 	return;

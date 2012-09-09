@@ -110,6 +110,11 @@ void stripTags(char *src, char *dst, int max) {
 }
 
 
+void pluginTimerPoke(void *handle, int id) {
+	return;
+}
+
+
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	char *buffer, *next, buff[520], *print;
 

@@ -42,6 +42,7 @@ const char *pluginName();
 	/* API for filter plugins */
 	void *pluginDoInit(const char *network);
 	void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message);
+	void pluginTimerPoke(void *handle, int id);
 	void *pluginDestroy(void *handle);
 #endif
 

@@ -71,9 +71,10 @@ void pluginAddFilter(void *lib_handle, const char *name) {
 
 	plugin->init = dlsym(lib_handle, "pluginDoInit");
 	plugin->filter = dlsym(lib_handle, "pluginFilter");
+	plugin->timerPoke = dlsym(lib_handle, "pluginTimerPoke");
 	plugin->destroy = dlsym(lib_handle, "pluginDestroy");
 
-	if (!plugin->init || !plugin->filter || !plugin->destroy) {
+	if (!plugin->init || !plugin->filter || !plugin->destroy || !plugin->timerPoke) {
 		dlclose(lib_handle);
 		free(plugin);
 		return;

@@ -19,6 +19,7 @@ struct PLUGIN_FILTER_ENTRY {
 	const char			*name;
 	void				*(*init)(const char *network);
 	void				(*filter)(void *handle, const char *from, const char *host, const char *command,  const char *channel, const char *message);
+	void				(*timerPoke)(void *handle, int id);
 	void				*(*destroy)(void *handle);
 	struct PLUGIN_FILTER_ENTRY	*next;
 };

@@ -115,6 +115,11 @@ void pluginProcessHit(const char *channel, const char *message, char *urlfile) {
 }
 
 
+void pluginTimerPoke(void *handle, int id) {
+	return;
+}
+
+
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	LEGACY *legacy = handle;
 	char buff[2048], *data;

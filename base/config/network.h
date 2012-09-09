@@ -53,6 +53,8 @@ struct NETWORK_ENTRY {
 	struct NETWORK_CHANNEL	*channel;
 
 	NETWORK_PLUGIN_DATA	*plugin;
+	struct TIMER_ENTRY	*timer;
+	int			timers;
 
 	struct NETWORK_ENTRY	*next;
 };
@@ -89,6 +91,8 @@ void networkPluginInit(const char *name);
 void networkPluginInitAll();
 void networkPlugindataDelete(const char *name);
 void networkInit();
+
+NETWORK_PLUGIN_DATA *networkPluginDataGet(const char *name);
 
 const char *networkNick();
 

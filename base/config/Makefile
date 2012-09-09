@@ -1,4 +1,4 @@
-SRC = config.c plugin.c network.c layer.c irc.c filter.c
+SRC = config.c plugin.c network.c layer.c irc.c filter.c timer.c
 CFLAGS += -fPIC -shared -Wl,-soname,config.so -O3 -Wall
 LDFLAGS += -ldl
 

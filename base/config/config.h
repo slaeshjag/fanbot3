@@ -17,6 +17,7 @@
 #include "layer.h"
 #include "irc.h"
 #include "filter.h"
+#include "timer.h"
 
 
 #define	CONFIG_PLUGIN_NETWORK		0x1
