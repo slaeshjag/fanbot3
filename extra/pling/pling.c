@@ -159,7 +159,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	sscanf(message, "+%i:%i", &hours, &minutes);
 
 	if (minutes == 0 && hours == 0) {
-		sprintf(buff, "%s: Dateformat: +hh:mm where time is relative to now", from);
+		sprintf(buff, "%s: Dateformat: +hh:mm <message> where time is relative to now", from);
 		ircMessage(channel, buff);
 		return;
 	}

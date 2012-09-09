@@ -103,7 +103,6 @@ void timerProcess() {
 	while (timer != NULL) {
 		if (timer->when > now);
 		else if ((filter = filterFind(timer->plugin)) == NULL) {
-			configErrorPush("Bah, filter requested a timer but isn't here to answer");
 			timerDelete(timer->id);
 		} else if ((plug_data = networkPluginDataGet(filter->name)) == NULL) {
 			configErrorPush("Couldn't get plugin data for the filter. This shouldn't happen.");

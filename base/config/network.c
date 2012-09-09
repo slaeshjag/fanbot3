@@ -449,8 +449,6 @@ void networkProcessBuffers() {
 		channel = channel->next;
 	}
 
-	fprintf(stderr, "Buffers processed\n");
-
 	return;
 }
 
@@ -504,6 +502,7 @@ void networkWait() {
 		config->net.network_active = next->name;
 		if (next->ready == NETWORK_NOT_CONNECTED);
 		else if (FD_ISSET(next->socket, &config->net.read)) {
+			networkProcess(next);
 			if (next->ready == NETWORK_NOT_CONNECTED)
 				continue;
 			if (next->ready == NETWORK_CONNECTING) {
