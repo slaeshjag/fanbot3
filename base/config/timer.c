@@ -26,7 +26,7 @@ int timerAdd(time_t when, const char *plugin) {
 	timer->when = when;
 	timer->plugin = plugin;
 	
-	timer->next = timer;
+	timer->next = network->timer;
 	network->timer = timer;
 	timer->id = network->timers;
 	network->timers++;
@@ -93,18 +93,23 @@ void timerProcess() {
 	struct PLUGIN_FILTER_ENTRY *filter;
 	time_t now;
 	
-	if ((network = networkFind(config->net.network_active)) == NULL)
+	if ((network = networkFind(config->net.network_active)) == NULL) {
+		configErrorPush("Couldn't find the network o_O");
 		return;
+	}
 	
 	timer = network->timer;
 	now = time(NULL);
 	while (timer != NULL) {
 		if (timer->when > now);
 		else if ((filter = filterFind(timer->plugin)) == NULL) {
+			configErrorPush("Bah, filter requested a timer but isn't here to answer");
 			timerDelete(timer->id);
 		} else if ((plug_data = networkPluginDataGet(filter->name)) == NULL) {
+			configErrorPush("Couldn't get plugin data for the filter. This shouldn't happen.");
 			timerDelete(timer->id);
 		} else {
+			configErrorPush("Calling filter!");
 			(filter->timerPoke)(plug_data->handle, timer->id);
 		}
 

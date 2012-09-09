@@ -2,6 +2,7 @@
 #define	__CONFIG_API_H__
 
 #include <errno.h>
+#include <time.h>
 
 #ifndef __CONFIG_H__
 #include <config/irc.h>
@@ -22,6 +23,9 @@ void configErrorPush(const char *err);
 const char *networkNick();
 const char *ircGetIntendedChannel(const char *channel, const char *from);
 void configFilterReload();
+int timerAdd(time_t when, const char *plugin);
+void timerDelete(int id);
+
 
 /* Common API for plugins */
 unsigned int pluginType();

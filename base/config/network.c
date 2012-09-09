@@ -177,8 +177,6 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 		network->buff_pos = network->buff_pos + i - k;
 	} while (1);
 
-	timerProcess();
-
 	return;
 }
 
@@ -211,12 +209,18 @@ NETWORK_PLUGIN_DATA *networkPluginDataGet(const char *name) {
 void networkPlugindataDelete(const char *name) {
 	struct NETWORK_ENTRY *network;
 	int i;
+	const char *tmp;
 
 	if ((network = networkFind(name)) == NULL)
 		return;
 	
 	if (network->plugin == NULL)
 		return;
+	
+	tmp = config->net.network_active;
+	config->net.network_active = name;
+	timerDeleteAll();
+	config->net.network_active = tmp;
 
 	for (i = 0; i < config->plugin.filters; i++)
 		filterDestroy(network->plugin[i].name, network->plugin[i].handle);
@@ -307,7 +311,6 @@ void networkDisconnect(const char *name, const char *reason) {
 	network->ready = NETWORK_NOT_CONNECTED;
 	network->disconnect = time(NULL);
 
-	timerDeleteAll();
 	networkPlugindataDelete(name);
 
 	return;
@@ -446,6 +449,8 @@ void networkProcessBuffers() {
 		channel = channel->next;
 	}
 
+	fprintf(stderr, "Buffers processed\n");
+
 	return;
 }
 
@@ -499,7 +504,6 @@ void networkWait() {
 		config->net.network_active = next->name;
 		if (next->ready == NETWORK_NOT_CONNECTED);
 		else if (FD_ISSET(next->socket, &config->net.read)) {
-			networkProcess(next);
 			if (next->ready == NETWORK_NOT_CONNECTED)
 				continue;
 			if (next->ready == NETWORK_CONNECTING) {
@@ -517,6 +521,7 @@ void networkWait() {
 				}
 				next->ready = NETWORK_READY;
 		}
+		timerProcess();
 		networkProcessBuffers();
 		networkReconnect();
 		next = next->next;
