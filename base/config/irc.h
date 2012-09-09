@@ -1,8 +1,8 @@
 #ifndef __IRC_H__
 #define	__IRC_H__
 
-#define	IRC_NICK_IN_USE		"433"
-#define	IRC_NICK_NOT_REGISTERED	"451"
+#define	IRC_NICK_IN_USE			"433"
+#define	IRC_NICK_NOT_REGISTERED		"451"
 
 
 void ircMessage(const char *channel, const char *message);
