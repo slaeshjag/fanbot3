@@ -114,6 +114,7 @@ void messageBufferRead(MAIN *m) {
 	}
 
 	fclose(fp);
+	unlink(buff);
 
 	return;
 }
