@@ -3,17 +3,21 @@
 #include <string.h>
 #include <config/api.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
 
 struct MESSAGE_BUFFER {
 	char			message[128];
 	char			who[128];
 	char			channel[512];
+	time_t			when;
 	int			id;
 	struct MESSAGE_BUFFER	*next;
 };
 
 typedef struct {
 	struct MESSAGE_BUFFER	*buffer;
+	const char		*network;
 } MAIN;
 
 
@@ -49,6 +53,7 @@ void messageBufferAdd(MAIN *m, const char *message, const char *who, const char 
 	buffer->message[127] = 0;
 	strncpy(buffer->who, who, 128);
 	strncpy(buffer->channel, channel, 512);
+	buffer->when = when;
 
 	buffer->next = m->buffer;
 	m->buffer = buffer;
@@ -57,9 +62,65 @@ void messageBufferAdd(MAIN *m, const char *message, const char *who, const char 
 }
 
 
+void messageBufferDump(MAIN *m) {
+	struct MESSAGE_BUFFER *buffer;
+	char buff[256];
+	FILE *fp;
+	
+	mkdir("data/pling", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	sprintf(buff, "data/pling/%s", m->network);
+
+	if ((fp = fopen(buff, "w")) == NULL) {
+		configErrorPush("pling: Unable to dump the messsage buffer to file: Unable to create file");
+		return;
+	}
+
+	buffer = m->buffer;
+	while (buffer != NULL) {
+		fprintf(fp, "%lli %s %s %s\n", buffer->when, buffer->channel, buffer->who, buffer->message);
+		buffer = buffer->next;
+	}
+
+	fclose(fp);
+	return;
+}
+
+
+void messageBufferRead(MAIN *m) {
+	FILE *fp;
+	long long int when;
+	time_t now;
+	char buff[256], channel[512], message[130], who[128];
+
+	sprintf(buff, "data/pling/%s", m->network);
+	now = time(NULL);
+
+	if ((fp = fopen(buff, "r")) == NULL) {
+		configErrorPush("pling: Warning: Unable to open message buffer dump");
+		return;
+	}
+
+	while (!feof(fp)) {
+		when = 0;
+		fscanf(fp, "%lli %s %s", &when, channel, who);
+		if (when == 0)
+			break;
+		fgets(message, 130, fp);
+		if (strchr(message, '\n'))
+			*(strchr(message, '\n')) = 0;
+		if (now >= when)
+			when = now + 2;
+		messageBufferAdd(m, &message[1], who, channel, when);
+	}
+
+	fclose(fp);
+
+	return;
+}
+
+
 void messageBufferDelete(MAIN *m, int id) {
 	struct MESSAGE_BUFFER *buffer, *old;
-
 
 	old = m->buffer;
 	buffer = old->next;
@@ -109,6 +170,7 @@ const char *pluginName() {
 
 
 void *pluginDestroy(void *handle) {
+	messageBufferDump(handle);
 	messageBufferDestroy(handle);
 	free(handle);
 
@@ -122,6 +184,9 @@ void *pluginDoInit(const char *network) {
 	if ((m = malloc(sizeof(MAIN))) == NULL)
 		return NULL;
 	m->buffer = NULL;
+	m->network = network;
+
+	messageBufferRead(m);
 
 	return m;
 }

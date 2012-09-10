@@ -17,8 +17,24 @@ void reload(int signal_num) {
 }
 
 
+void die(int signal_num) {
+	(fanbot.destroy)(fanbot.handle, "SIGINT received (admin pressed CTRL-C) - Bot is shutting down");
+	dlclose(fanbot.library);
+	exit(0);
+}
+
+
+void segfault(int signal_num) {
+	(fanbot.destroy)(fanbot.handle, "SIGSEGV received (Segmentation fault) - Bot is shutting down");
+	dlclose(fanbot.library);
+	exit(-1);
+}
+
+
 int main(int argc, char **argv) {
 	signal(SIGUSR1, reload);
+	signal(SIGINT, die);
+	signal(SIGSEGV, segfault);
 
 	for (;;) {
 		if ((fanbot.library = dlopen("base/config.so", RTLD_NOW | RTLD_GLOBAL)) == NULL) {

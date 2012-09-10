@@ -16,8 +16,9 @@ int timerAdd(time_t when, const char *plugin) {
 	struct NETWORK_ENTRY *network;
 	struct TIMER_ENTRY *timer;
 
-	if ((network = networkFind(config->net.network_active)) == NULL)
+	if ((network = networkFind(config->net.network_active)) == NULL) {
 		return -1;
+	}
 	if (when <= time(NULL))
 		return -1;
 	
@@ -108,7 +109,6 @@ void timerProcess() {
 			configErrorPush("Couldn't get plugin data for the filter. This shouldn't happen.");
 			timerDelete(timer->id);
 		} else {
-			configErrorPush("Calling filter!");
 			(filter->timerPoke)(plug_data->handle, timer->id);
 		}
 

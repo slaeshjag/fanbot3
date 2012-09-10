@@ -2,7 +2,9 @@ default:
 	mkdir -p bin
 	mkdir -p bin/base
 	mkdir -p bin/extra
-	cp skel/* bin/base
+	mkdir -p bin/conf
+	mkdir -p bin/data
+	cp skel/* bin/conf
 	cd base && make
 	cd extra && make
 

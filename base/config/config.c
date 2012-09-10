@@ -78,7 +78,7 @@ void *init() {
 	config->net.network_active = "CONFIG";
 
 	pluginInit();
-	configRead("base/fanbot3.conf", CONFIG_ALL);
+	configRead("conf/fanbot3.conf", CONFIG_ALL);
 	networkConnectAll();
 	config->reload = config->reload_filters = 0;
 
@@ -86,7 +86,7 @@ void *init() {
 		networkWait();
 		if (config->reload_filters) {
 			config->net.network_active = "CONFIG";
-			filterReload("base/fanbot3.conf");
+			filterReload("conf/fanbot3.conf");
 		}
 	}
 
@@ -112,7 +112,7 @@ void configFilterReload() {
 void destroy(void *handle, const char *reason) {
 	/* TODO: Implement */
 
-	fprintf(stderr, "Destroying myself..\n");
+	fprintf(stderr, "\nDestroying myself..\n");
 	pluginNetworkUnload(reason);
 	pluginFilterUnload();
 

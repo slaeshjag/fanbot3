@@ -233,6 +233,7 @@ void networkPlugindataDelete(const char *name) {
 void networkPluginInit(const char *name) {
 	struct NETWORK_ENTRY *network;
 	struct PLUGIN_FILTER_ENTRY *filter;
+	const char *tmp;
 	int i;
 
 	if ((network = networkFind(name)) == NULL)
@@ -245,12 +246,15 @@ void networkPluginInit(const char *name) {
 		return;
 	}
 
+	tmp = config->net.network_active;
+	config->net.network_active = network->name;
 	filter = config->plugin.filter_plug;
 	for (i = 0; filter != NULL; i++) {
 		network->plugin[i].handle = filterInit(filter->name, network->name);
 		network->plugin[i].name = filter->name;
 		filter = filter->next;
 	}
+	config->net.network_active = tmp;
 	
 	return;
 }
@@ -520,7 +524,8 @@ void networkWait() {
 				}
 				next->ready = NETWORK_READY;
 		}
-		timerProcess();
+		else if (next->ready == NETWORK_READY)
+			timerProcess();
 		networkProcessBuffers();
 		networkReconnect();
 		next = next->next;
