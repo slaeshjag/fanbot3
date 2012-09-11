@@ -426,7 +426,6 @@ void networkPushLine(const char *network, const char *channel, const char *buffe
 				return;
 			strcpy(new->buffer, buffer);
 			new->prev = NULL;
-//			new->next = buffer_e;
 			if (buffer_e) buffer_e->prev = new;
 			channel_e->buffer = new;
 			if (!buffer_e)
@@ -479,14 +478,6 @@ void networkProcessBuffers() {
 				free(buffer);
 			}
 
-			/*for (i = channel->start; i != channel->end && channel->cap > 0; i++) {
-				if (i == NETWORK_BUFFER_QUEUE) i = 0;
-				if (i == channel->end) break;
-				layerWrite(network->layer, network->network_handle, &channel->buffer[i * 513], strlen(&channel->buffer[i * 513]), &error);
-				channel->cap--;
-			}
-			if (i == NETWORK_BUFFER_QUEUE) i = 0;
-			channel->start = i;*/
 		}
 		channel = channel->next;
 	}
