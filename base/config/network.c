@@ -105,7 +105,7 @@ void networkChannelAdd(const char *name, const char *chan, const char *key) {
 	channel->last_sent = 0;
 	channel->cap = NETWORK_CHANNEL_SEND_CAP;
 	channel->next = network->channel;
-	channel->start = channel->end = 0;
+	channel->buffer = channel->buffer_end = NULL;
 	network->channel = channel;
 
 	fprintf(stderr, "Debug: Added channel %s <%s> to network %s\n", chan, key, name);
@@ -300,6 +300,25 @@ void networkDeleteAll(const char *reason) {
 }
 
 
+void networkFreeChannelBuffers(struct NETWORK_ENTRY *network) {
+	struct NETWORK_CHANNEL *channel;
+	struct CHANNEL_BUFFER *buffer, *prev;
+
+	channel = network->channel;
+	while (channel != NULL) {
+		buffer = channel->buffer_end;
+		while (buffer != NULL) {
+			prev = buffer->prev;
+			free(buffer);
+			buffer = prev;
+		}
+		channel = channel->next;
+	}
+
+	return;
+}
+
+
 void networkDisconnect(const char *name, const char *reason) {
 	struct NETWORK_ENTRY *network;
 
@@ -316,6 +335,7 @@ void networkDisconnect(const char *name, const char *reason) {
 	network->disconnect = time(NULL);
 
 	networkPlugindataDelete(name);
+	networkFreeChannelBuffers(network);
 
 	return;
 }
@@ -392,19 +412,25 @@ const char *networkNick() {
 void networkPushLine(const char *network, const char *channel, const char *buffer) {
 	struct NETWORK_ENTRY *network_e;
 	struct NETWORK_CHANNEL *channel_e;
-	int i, error;
+	struct CHANNEL_BUFFER *buffer_e, *new;
+	int error;
 	time_t now = time(NULL);
 	
 	if ((network_e = networkFind(network)) == NULL)
 		return;
 	if ((channel_e = networkChannel(network, channel)) == NULL);
 	else {
-		i = channel_e->end;
-		if ((i + 1) % NETWORK_BUFFER_QUEUE == channel_e->start)
-			return;
+		buffer_e = channel_e->buffer;
 		if (channel_e->cap == 0 && channel_e->last_sent == now) {
-			strcpy(&channel_e->buffer[i * 513], buffer);
-			channel_e->end = (i + 1 == NETWORK_BUFFER_QUEUE) ? 0 : i + 1;
+			if ((new = malloc(sizeof(struct CHANNEL_BUFFER))) == NULL)
+				return;
+			strcpy(new->buffer, buffer);
+			new->prev = NULL;
+//			new->next = buffer_e;
+			if (buffer_e) buffer_e->prev = new;
+			channel_e->buffer = new;
+			if (!buffer_e)
+				channel_e->buffer_end = new;
 			return;
 		}
 	
@@ -429,8 +455,9 @@ void networkPushLine(const char *network, const char *channel, const char *buffe
 void networkProcessBuffers() {
 	struct NETWORK_ENTRY *network;
 	struct NETWORK_CHANNEL *channel;
+	struct CHANNEL_BUFFER *buffer;
 	time_t now = time(NULL);
-	int i, error;
+	int error;
 
 	if ((network = networkFind(config->net.network_active)) == NULL)
 		return;
@@ -441,14 +468,25 @@ void networkProcessBuffers() {
 		else {
 			channel->cap = NETWORK_CHANNEL_SEND_CAP;
 			channel->last_sent = now;
-			for (i = channel->start; i != channel->end && channel->cap > 0; i++) {
+			while (channel->cap > 0) {
+				buffer = channel->buffer_end;
+				if (!buffer) break;
+				layerWrite(network->layer, network->network_handle, buffer->buffer, strlen(buffer->buffer), &error);
+				channel->cap--;
+
+				channel->buffer_end = buffer->prev;
+				if (buffer->prev == NULL) channel->buffer = NULL;
+				free(buffer);
+			}
+
+			/*for (i = channel->start; i != channel->end && channel->cap > 0; i++) {
 				if (i == NETWORK_BUFFER_QUEUE) i = 0;
 				if (i == channel->end) break;
 				layerWrite(network->layer, network->network_handle, &channel->buffer[i * 513], strlen(&channel->buffer[i * 513]), &error);
 				channel->cap--;
 			}
 			if (i == NETWORK_BUFFER_QUEUE) i = 0;
-			channel->start = i;
+			channel->start = i;*/
 		}
 		channel = channel->next;
 	}
@@ -518,7 +556,7 @@ void networkWait() {
 				channel = next->channel;
 				while (channel != NULL) {
 					ircJoin(channel->name, channel->key);
-					channel->start = channel->end = 0;
+					channel->buffer = channel->buffer_end = NULL;
 					channel->cap = NETWORK_CHANNEL_SEND_CAP;
 					channel = channel->next;
 				}

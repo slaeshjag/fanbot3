@@ -22,14 +22,19 @@ typedef struct {
 } NETWORK_PLUGIN_DATA;
 
 
+struct CHANNEL_BUFFER {
+	struct CHANNEL_BUFFER	*prev;
+	char			buffer[516];
+};
+
+
 struct NETWORK_CHANNEL {
 	char			name[128];
 	char			key[128];
 	time_t			last_sent;
 	int			cap;
-	char			buffer[513 * NETWORK_BUFFER_QUEUE];
-	int			start;
-	int			end;
+	struct CHANNEL_BUFFER	*buffer;
+	struct CHANNEL_BUFFER	*buffer_end;
 	struct NETWORK_CHANNEL	*next;
 };
 
