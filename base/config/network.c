@@ -444,7 +444,7 @@ void networkPushLine(const char *network, const char *channel, const char *buffe
 
 		return;
 	}
-	
+
 	layerWrite(network_e->layer, network_e->network_handle, buffer, strlen(buffer), &error);
 	
 	return;

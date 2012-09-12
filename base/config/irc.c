@@ -20,7 +20,11 @@ int ircLogic(const char *command) {		/* To detect errors etc. */
 
 
 const char *ircGetIntendedChannel(const char *channel, const char *from) {
-	if (strcmp(channel, networkNick()) == 0)
+	char nick[128];
+	
+	sprintf(nick, "%s", networkNick());
+	stringToUpper(nick);
+	if (strcmp(channel, nick) == 0)
 		return from;
 	return channel;
 }
