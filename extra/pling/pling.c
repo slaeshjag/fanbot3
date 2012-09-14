@@ -209,8 +209,8 @@ void pluginTimerPoke(void *handle, int id) {
 
 
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
-	char buff[520];
-	int minutes, hours;
+	char buff[520], to[520];
+	int minutes, hours, start_from;
 	time_t then;
 	if (handle == NULL)
 		return;
@@ -222,11 +222,25 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	channel = ircGetIntendedChannel(channel, from);
 	
 	message += strlen("<pling ");
-	hours = minutes = 0;
+	hours = minutes = start_from = 0;
+	*to = 0;
+	sscanf(message, "! %s", to);
+	if (*to != 0) {
+		start_from = 1;
+		message += 2;
+		if ((message = strstr(message, " ")) == NULL) {
+			sprintf(buff, "%s: Dateformat: [! nickname] +hh:mm [message] where time is relative to now", from);
+			ircMessage(channel, buff);
+			return;
+		}
+		message++;
+	} else
+		sprintf(to, "%s", from);
+		
 	sscanf(message, "+%i:%i", &hours, &minutes);
 
 	if (minutes == 0 && hours == 0) {
-		sprintf(buff, "%s: Dateformat: +hh:mm <message> where time is relative to now", from);
+		sprintf(buff, "%s: Dateformat: [! nickname] +hh:mm [message] where time is relative to now", from);
 		ircMessage(channel, buff);
 		return;
 	}
@@ -238,8 +252,16 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	else
 		message++;
 
-	messageBufferAdd(handle, message, from, channel, then);
-	sprintf(buff, "%s: Mkay, I'll remind you in %i hours and %i minutes", from, hours, minutes);
+	if (start_from)
+		sprintf(buff, "<%s> reminds you: %s", from, message);
+	else
+		sprintf(buff, "%s", message);
+	messageBufferAdd(handle, buff, to, channel, then);
+
+	if (start_from)
+		sprintf(buff, "%s: Mkay, I'll remind %s in %i hours and %i minutes", from, to, hours, minutes);
+	else
+		sprintf(buff, "%s: Mkay, I'll remind you in %i hours and %i minutes", from, hours, minutes);
 	ircMessage(channel, buff);
 
 	return;
