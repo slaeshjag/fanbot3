@@ -127,14 +127,12 @@ void messageBufferDelete(MAIN *m, int id) {
 	buffer = old->next;
 	if (old->id == id) {
 		m->buffer = old->next;
-		timerDelete(old->id);
 		free(old);
 		return;
 	}
 	while (buffer != NULL) {
 		if (buffer->id == id) {
 			old->next = buffer->next;
-			timerDelete(buffer->id);
 			free(buffer);
 			return;
 		}

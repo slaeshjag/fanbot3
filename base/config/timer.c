@@ -51,7 +51,7 @@ void timerDelete(int id) {
 		return;
 	}
 
-	old = network->timer->next;
+	old = network->timer;
 	timer = old->next;
 	while (timer != NULL) {
 		if (timer->id == id) {
