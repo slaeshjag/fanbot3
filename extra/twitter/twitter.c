@@ -156,7 +156,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 
 	while (next != NULL) {
 		stripTags(next, print, 510 - strlen(buff));
-		if (buff[0] == '@');	/* We don't want that */
+		if (print[0] == '@');	/* We don't want that */
 		else {
 			if (*buff == 0) break;
 			free(buffer);
