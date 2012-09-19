@@ -102,8 +102,12 @@ void messageBufferRead(MAIN *m) {
 	}
 
 	while (!feof(fp)) {
+		*channel = *who = 0;
 		fscanf(fp, "%s %s", channel, who);
+		*message = 0;
 		fgets(message, 130, fp);
+		if (*channel == 0 || *who == 0 || *message == 0)
+			break;
 		if (strchr(message, '\n'))
 			*(strchr(message, '\n')) = 0;
 		messageBufferAdd(m, &message[1], who, channel);

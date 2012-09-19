@@ -292,6 +292,7 @@ void networkDeleteAll(const char *reason) {
 		networkDisconnect(network->name, reason);
 		old = network;
 		network = network->next;
+		config->network = network;
 		free(old);
 	}
 	config->network = NULL;
