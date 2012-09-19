@@ -40,20 +40,27 @@ void messageBufferDestroy(MAIN *m) {
 
 
 void messageBufferAdd(MAIN *m, const char *message, const char *who, const char *channel) {
-	struct MESSAGE_BUFFER *buffer;
+	struct MESSAGE_BUFFER *buffer, *last;
 
 	if ((buffer = malloc(sizeof(struct MESSAGE_BUFFER))) == NULL)
 		return;
 	
+	last = m->buffer;
+	if (last != NULL)
+		while (last->next != NULL)
+			last = last->next;
 	strncpy(buffer->message, message, 128);
 	buffer->message[127] = 0;
 	strncpy(buffer->who, who, 128);
 	strncpy(buffer->channel, channel, 512);
 	buffer->id = m->cnt;
 	m->cnt++;
-
-	buffer->next = m->buffer;
-	m->buffer = buffer;
+	
+	if (last != NULL)
+		last->next = buffer;
+	else
+		m->buffer = buffer;
+	buffer->next = NULL;
 
 	return;
 }
@@ -68,7 +75,7 @@ void messageBufferDump(MAIN *m) {
 	sprintf(buff, "data/tell/%s", m->network);
 
 	if ((fp = fopen(buff, "w")) == NULL) {
-		configErrorPush("pling: Unable to dump the messsage buffer to file: Unable to create file");
+		configErrorPush("tell: Unable to dump the messsage buffer to file: Unable to create file");
 		return;
 	}
 
