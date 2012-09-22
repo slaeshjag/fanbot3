@@ -238,7 +238,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	}
 	else {
 		message++;
-		sprintf(buff, "<%s> %s", to, message);
+		sprintf(buff, "<%s> %s", from, message);
 		messageBufferAdd(handle, buff, to, channel);
 		sprintf(buff, "%s: Mkay, I'll pass that on to %s", from, to);
 	}
