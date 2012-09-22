@@ -38,7 +38,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	sprintf(buff, ":%s!%s PRIVMSG %s :%s\r\n", from, host, channel, message);
 	if (strlen(buff) >= 512) {
 		channel = ircGetIntendedChannel(channel, from);
-		sprintf(buff, "%s: That message was exactly the lenght that the IRC-protocol allows. It probably got cut off", from);
+		sprintf(buff, "%s: That message was exactly the length that the IRC-protocol allows. It probably got cut off", from);
 		ircMessage(channel, buff);
 	}
 
