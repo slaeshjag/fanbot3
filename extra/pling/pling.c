@@ -68,8 +68,8 @@ void messageBufferDump(MAIN *m) {
 	FILE *fp;
 	
 	mkdir("data/pling", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	unlink(buff);
 	sprintf(buff, "data/pling/%s", m->network);
+	unlink(buff);
 
 	if ((fp = fopen(buff, "w")) == NULL) {
 		configErrorPush("pling: Unable to dump the messsage buffer to file: Unable to create file");
