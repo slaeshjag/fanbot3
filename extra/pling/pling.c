@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 
 struct MESSAGE_BUFFER {
-	char			message[128];
+	char			message[512];
 	char			who[128];
 	char			channel[512];
 	time_t			when;
@@ -49,8 +49,8 @@ void messageBufferAdd(MAIN *m, const char *message, const char *who, const char 
 		return;
 	}
 
-	strncpy(buffer->message, message, 128);
-	buffer->message[127] = 0;
+	strncpy(buffer->message, message, 512);
+	buffer->message[512] = 0;
 	strncpy(buffer->who, who, 128);
 	strncpy(buffer->channel, channel, 512);
 	buffer->when = when;
@@ -68,6 +68,7 @@ void messageBufferDump(MAIN *m) {
 	FILE *fp;
 	
 	mkdir("data/pling", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	unlink(buff);
 	sprintf(buff, "data/pling/%s", m->network);
 
 	if ((fp = fopen(buff, "w")) == NULL) {
@@ -90,7 +91,7 @@ void messageBufferRead(MAIN *m) {
 	FILE *fp;
 	long long int when;
 	time_t now;
-	char buff[256], channel[512], message[130], who[128];
+	char buff[256], channel[512], message[514], who[128];
 
 	sprintf(buff, "data/pling/%s", m->network);
 	now = time(NULL);
@@ -105,7 +106,7 @@ void messageBufferRead(MAIN *m) {
 		fscanf(fp, "%lli %s %s", &when, channel, who);
 		if (when == 0)
 			break;
-		fgets(message, 130, fp);
+		fgets(message, 514, fp);
 		if (strchr(message, '\n'))
 			*(strchr(message, '\n')) = 0;
 		if (now >= when)
@@ -114,7 +115,6 @@ void messageBufferRead(MAIN *m) {
 	}
 
 	fclose(fp);
-	unlink(buff);
 
 	return;
 }
@@ -195,7 +195,7 @@ void *pluginDoInit(const char *network) {
 
 void pluginTimerPoke(void *handle, int id) {
 	MAIN *m = handle;
-	char buff[512];
+	char buff[1024];
 	struct MESSAGE_BUFFER *buffer;
 	
 	if ((buffer = messageGetBuffer(m, id)) == NULL)

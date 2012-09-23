@@ -9,7 +9,7 @@
 
 struct MESSAGE_BUFFER {
 	int			id;
-	char			message[128];
+	char			message[512];
 	char			who[128];
 	char			channel[512];
 	struct MESSAGE_BUFFER	*next;
@@ -49,8 +49,8 @@ void messageBufferAdd(MAIN *m, const char *message, const char *who, const char 
 	if (last != NULL)
 		while (last->next != NULL)
 			last = last->next;
-	strncpy(buffer->message, message, 128);
-	buffer->message[127] = 0;
+	strncpy(buffer->message, message, 512);
+	buffer->message[511] = 0;
 	strncpy(buffer->who, who, 128);
 	strncpy(buffer->channel, channel, 512);
 	buffer->id = m->cnt;
@@ -68,7 +68,7 @@ void messageBufferAdd(MAIN *m, const char *message, const char *who, const char 
 
 void messageBufferDump(MAIN *m) {
 	struct MESSAGE_BUFFER *buffer;
-	char buff[256];
+	char buff[1024];
 	FILE *fp;
 	
 	mkdir("data/tell", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -92,7 +92,7 @@ void messageBufferDump(MAIN *m) {
 
 void messageBufferRead(MAIN *m) {
 	FILE *fp;
-	char buff[256], channel[512], message[130], who[128];
+	char buff[256], channel[512], message[512], who[128];
 
 	sprintf(buff, "data/tell/%s", m->network);
 
@@ -105,7 +105,7 @@ void messageBufferRead(MAIN *m) {
 		*channel = *who = 0;
 		fscanf(fp, "%s %s", channel, who);
 		*message = 0;
-		fgets(message, 130, fp);
+		fgets(message, 512, fp);
 		if (*channel == 0 || *who == 0 || *message == 0)
 			break;
 		if (strchr(message, '\n'))
@@ -114,7 +114,6 @@ void messageBufferRead(MAIN *m) {
 	}
 
 	fclose(fp);
-	unlink(buff);
 
 	return;
 }
