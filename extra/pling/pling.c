@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <config/api.h>
 
@@ -17,6 +18,7 @@ struct MESSAGE_BUFFER {
 
 typedef struct {
 	struct MESSAGE_BUFFER	*buffer;
+	struct MESSAGE_BUFFER	*re_remind;
 	const char		*network;
 } MAIN;
 
@@ -34,29 +36,55 @@ void messageBufferDestroy(MAIN *m) {
 		buffer = tmp;
 	}
 
+	buffer = m->re_remind;
+	m->re_remind = NULL;
+	while (buffer != NULL) {
+		timerDelete(buffer->id);
+		tmp = buffer->next;
+		free(buffer);
+		buffer = tmp;
+	}
+		
+
 	return;
 }
 
 
-void messageBufferAdd(MAIN *m, const char *message, const char *who, const char *channel, time_t when) {
+struct MESSAGE_BUFFER *messageBufferMake(MAIN *m, const char *message, const char *who, const char *channel, time_t when) {
 	struct MESSAGE_BUFFER *buffer;
 
 	if ((buffer = malloc(sizeof(struct MESSAGE_BUFFER))) == NULL)
-		return;
+		return NULL;
 	
 	if ((buffer->id = timerAdd(when, "pling")) == -1) {
 		free(buffer);
-		return;
+		return NULL;
 	}
 
 	strncpy(buffer->message, message, 512);
-	buffer->message[512] = 0;
+	buffer->message[511] = 0;
 	strncpy(buffer->who, who, 128);
 	strncpy(buffer->channel, channel, 512);
 	buffer->when = when;
 
+	return buffer;
+}
+
+void messageBufferAdd(MAIN *m, const char *message, const char *who, const char *channel, time_t when) {
+	struct MESSAGE_BUFFER *buffer;
+
+	if ((buffer = messageBufferMake(m, message, who, channel, when)) == NULL)
+		return;
 	buffer->next = m->buffer;
 	m->buffer = buffer;
+
+	return;
+}
+
+
+void messageBufferAddNick(MAIN *m, struct MESSAGE_BUFFER *buffer) {
+	buffer->next = m->re_remind;
+	m->re_remind = buffer;
 
 	return;
 }
@@ -78,7 +106,7 @@ void messageBufferDump(MAIN *m) {
 
 	buffer = m->buffer;
 	while (buffer != NULL) {
-		fprintf(fp, "%lli %s %s %s\n", buffer->when, buffer->channel, buffer->who, buffer->message);
+		fprintf(fp, "%lli %s %s %s\n", (long long int) buffer->when, buffer->channel, buffer->who, buffer->message);
 		buffer = buffer->next;
 	}
 
@@ -103,7 +131,7 @@ void messageBufferRead(MAIN *m) {
 
 	while (!feof(fp)) {
 		when = 0;
-		fscanf(fp, "%lli %s %s", &when, channel, who);
+		fscanf(fp, "%lli %s %s", (long long int *) &when, channel, who);
 		if (when == 0)
 			break;
 		fgets(message, 514, fp);
@@ -120,22 +148,54 @@ void messageBufferRead(MAIN *m) {
 }
 
 
+void messageBufferDeleteNick(MAIN *m, const char *who) {
+	struct MESSAGE_BUFFER *buffer, *old;
+
+	if (m->re_remind == NULL)
+		return;
+
+	old = m->re_remind;
+	buffer = old->next;
+	if (strcmp(old->who, who) == 0) {
+		m->re_remind = old->next;
+		free(old);
+		return;
+	}
+	while (buffer != NULL) {
+		if (strcmp(buffer->who, who) == 0) {
+			old->next = buffer->next;
+			free(buffer);
+			return;
+		}
+		old = buffer;
+		buffer = buffer->next;
+	}
+
+	return;
+}
+
+
 void messageBufferDelete(MAIN *m, int id) {
 	struct MESSAGE_BUFFER *buffer, *old;
+
+	if (m->buffer == NULL)
+		return;
 
 	old = m->buffer;
 	buffer = old->next;
 	if (old->id == id) {
 		m->buffer = old->next;
 		timerDelete(old->id);
-		free(old);
+		messageBufferDeleteNick(m, old->who);
+		messageBufferAddNick(m, old);
 		return;
 	}
 	while (buffer != NULL) {
 		if (buffer->id == id) {
 			old->next = buffer->next;
 			timerDelete(buffer->id);
-			free(buffer);
+			messageBufferDeleteNick(m, buffer->who);
+			messageBufferAddNick(m, buffer);
 			return;
 		}
 		old = buffer;
@@ -185,6 +245,7 @@ void *pluginDoInit(const char *network) {
 	if ((m = malloc(sizeof(MAIN))) == NULL)
 		return NULL;
 	m->buffer = NULL;
+	m->re_remind = NULL;
 	m->network = network;
 
 	messageBufferRead(m);
@@ -208,6 +269,59 @@ void pluginTimerPoke(void *handle, int id) {
 }
 
 
+struct MESSAGE_BUFFER *pluginFindOld(MAIN *m, const char *who) {
+	struct MESSAGE_BUFFER *buffer;
+
+	buffer = m->re_remind;
+	while (buffer != NULL) {
+		if (strcmp(buffer->who, who) == 0)
+			return buffer;
+		buffer = buffer->next;
+	}
+
+	return NULL;
+}
+
+
+int pluginRepling(MAIN *m, const char *message, const char *from, const char *channel) {
+	struct MESSAGE_BUFFER *buffer_s;
+	char buffer[520];
+	int hours, minutes;
+	time_t then;
+
+	if ((message = strstr(message, "+")) == NULL) {
+		sprintf(buffer, "%s: Usage: <later +hh:mm", from);
+		ircMessage(channel, buffer);
+		return -1;
+	}
+	
+	sscanf(message, "+%i:%i", &hours, &minutes);
+	if (hours == 0 && minutes == 0) {
+		sprintf(buffer, "%s: Usage: <later +hh:mm", from);
+		ircMessage(channel, buffer);
+		return -1;
+	}
+
+	then = time(NULL);
+	then += hours * 3600 + minutes * 60;
+
+	if ((buffer_s = pluginFindOld(m, from)) == NULL) {
+		sprintf(buffer, "%s: You have not been reminded about anything yet.", from);
+		ircMessage(channel, buffer);
+		return -1;
+	}
+
+	messageBufferAdd(m, buffer_s->message, from, channel, then);
+	messageBufferDeleteNick(m, from);
+
+	sprintf(buffer, "%s: Mkay, I'll remind you again in %i hours and %i minutes", from, hours, minutes);
+	ircMessage(channel, buffer);
+
+	return 0;
+}
+		
+
+
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	char buff[520], to[520];
 	int minutes, hours, start_from;
@@ -217,9 +331,11 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
+	channel = ircGetIntendedChannel(channel, from);
+	if (strstr(message, "<later ") == message)
+		pluginRepling(handle, message, from, channel);
 	if (strstr(message, "<pling ") != message)
 		return;
-	channel = ircGetIntendedChannel(channel, from);
 	
 	message += strlen("<pling ");
 	hours = minutes = start_from = 0;
