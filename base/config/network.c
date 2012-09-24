@@ -414,37 +414,39 @@ void networkPushLine(const char *network, const char *channel, const char *buffe
 	struct NETWORK_ENTRY *network_e;
 	struct NETWORK_CHANNEL *channel_e;
 	struct CHANNEL_BUFFER *buffer_e, *new;
+	char channel_u[256];
 	int error;
 	time_t now = time(NULL);
 	
+	sprintf(channel_u, "%s", channel);
+	stringToUpper(channel_u);
+
 	if ((network_e = networkFind(network)) == NULL)
 		return;
-	if ((channel_e = networkChannel(network, channel)) == NULL);
-	else {
-		buffer_e = channel_e->buffer;
-		if (channel_e->cap == 0 && channel_e->last_sent == now) {
-			if ((new = malloc(sizeof(struct CHANNEL_BUFFER))) == NULL)
-				return;
-			strcpy(new->buffer, buffer);
-			new->prev = NULL;
-			if (buffer_e) buffer_e->prev = new;
-			channel_e->buffer = new;
-			if (!buffer_e)
-				channel_e->buffer_end = new;
-			return;
-		}
-	
-		if (channel_e->last_sent != now) {
-			channel_e->last_sent = now;
-			channel_e->cap = NETWORK_CHANNEL_SEND_CAP;
-		}
-	
-		channel_e->cap--;
-
-		layerWrite(network_e->layer, network_e->network_handle, buffer, strlen(buffer), &error);
-
+	if ((channel_e = networkChannel(network, channel_u)) == NULL)
+		networkChannelAdd(network, channel, "");
+	if ((channel_e = networkChannel(network, channel_u)) == NULL) {
+		configErrorPush("Unable to add channel");
 		return;
 	}
+
+	buffer_e = channel_e->buffer;
+	if (channel_e->cap == 0 && channel_e->last_sent == now) {
+		if ((new = malloc(sizeof(struct CHANNEL_BUFFER))) == NULL)
+			return;
+		strcpy(new->buffer, buffer);
+		new->prev = NULL;
+		if (buffer_e) buffer_e->prev = new;
+		channel_e->buffer = new;
+		if (!buffer_e)
+			channel_e->buffer_end = new;
+		return;
+	}
+			if (channel_e->last_sent != now) {
+		channel_e->last_sent = now;
+		channel_e->cap = NETWORK_CHANNEL_SEND_CAP;
+	}
+			channel_e->cap--;
 
 	layerWrite(network_e->layer, network_e->network_handle, buffer, strlen(buffer), &error);
 	
