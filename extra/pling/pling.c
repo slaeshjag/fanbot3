@@ -319,7 +319,32 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 
 	return 0;
 }
-		
+
+
+int pluginListPling(MAIN *m, const char *from) {
+	struct MESSAGE_BUFFER *buffer;
+	char message[512];
+	int hours, minutes;
+	time_t now, diff;
+	now = time(NULL);
+	
+	sprintf(message, "List of reminders:");
+	ircMessage(from, message);
+
+	buffer = m->buffer;
+	while (buffer != NULL) {
+		if (strcmp(buffer->who, from) == 0) {
+			diff = buffer->when - now;
+			minutes = (diff % 3600) / 60;
+			hours = diff / 3600;
+			sprintf(message, "+%i:%i %s", hours, minutes, buffer->message);
+			ircMessage(from, message);
+		}
+		buffer = buffer->next;
+	}
+
+	return 0;
+}
 
 
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
@@ -334,6 +359,8 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	channel = ircGetIntendedChannel(channel, from);
 	if (strstr(message, "<later ") == message)
 		pluginRepling(handle, message, from, channel);
+	if (strstr(message, "<getpling") == message)
+		pluginListPling(handle, from);
 	if (strstr(message, "<pling ") != message)
 		return;
 	
