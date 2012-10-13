@@ -350,7 +350,7 @@ int pluginListPling(MAIN *m, const char *from) {
 
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	char buff[520], to[520];
-	int minutes, hours, start_from;
+	int minutes, hours, start_from, seconds;
 	time_t then;
 	if (handle == NULL)
 		return;
@@ -366,7 +366,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		return;
 	
 	message += strlen("<pling ");
-	hours = minutes = start_from = 0;
+	hours = minutes = start_from = seconds = 0;
 	*to = 0;
 	sscanf(message, "! %s", to);
 	if (*to != 0) {
@@ -381,7 +381,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	} else
 		sprintf(to, "%s", from);
 		
-	sscanf(message, "+%i:%i", &hours, &minutes);
+	sscanf(message, "+%i:%i:%i", &hours, &minutes, &seconds);
 
 	if (minutes == 0 && hours == 0) {
 		sprintf(buff, "%s: Dateformat: [! nickname] +hh:mm [message] where time is relative to now", from);
@@ -390,7 +390,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	}
 
 	then = time(NULL);
-	then += minutes * 60 + hours * 3600;
+	then += minutes * 60 + hours * 3600 + seconds;
 	if ((message = strstr(message, " ")) == NULL)
 		message = "Pling!";
 	else
@@ -403,9 +403,9 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	messageBufferAdd(handle, buff, to, channel, then);
 
 	if (start_from)
-		sprintf(buff, "%s: Mkay, I'll remind %s in %i hours and %i minutes", from, to, hours, minutes);
+		sprintf(buff, "%s: Mkay, I'll remind %s in %i hours, %i minutes and %i seconds", from, to, hours, minutes, seconds);
 	else
-		sprintf(buff, "%s: Mkay, I'll remind you in %i hours and %i minutes", from, hours, minutes);
+		sprintf(buff, "%s: Mkay, I'll remind you in %i hours and %i minutes and %i seconds", from, hours, minutes, seconds);
 	ircMessage(channel, buff);
 
 	return;
