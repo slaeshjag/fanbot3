@@ -286,7 +286,7 @@ struct MESSAGE_BUFFER *pluginFindOld(MAIN *m, const char *who) {
 int pluginRepling(MAIN *m, const char *message, const char *from, const char *channel) {
 	struct MESSAGE_BUFFER *buffer_s;
 	char buffer[520];
-	int hours, minutes;
+	int hours, minutes, seconds;
 	time_t then;
 
 	if ((message = strstr(message, "+")) == NULL) {
@@ -295,7 +295,8 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 		return -1;
 	}
 	
-	sscanf(message, "+%i:%i", &hours, &minutes);
+	seconds = 0;
+	sscanf(message, "+%i:%i:%i", &hours, &minutes, &seconds);
 	if (hours == 0 && minutes == 0) {
 		sprintf(buffer, "%s: Usage: <later +hh:mm", from);
 		ircMessage(channel, buffer);
@@ -303,7 +304,7 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 	}
 
 	then = time(NULL);
-	then += hours * 3600 + minutes * 60;
+	then += hours * 3600 + minutes * 60 + seconds;
 
 	if ((buffer_s = pluginFindOld(m, from)) == NULL) {
 		sprintf(buffer, "%s: You have not been reminded about anything yet.", from);
@@ -314,7 +315,7 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 	messageBufferAdd(m, buffer_s->message, from, channel, then);
 	messageBufferDeleteNick(m, from);
 
-	sprintf(buffer, "%s: Mkay, I'll remind you again in %i hours and %i minutes", from, hours, minutes);
+	sprintf(buffer, "%s: Mkay, I'll remind you again in %i hours, %i minutes and %i seconds", from, hours, minutes, seconds);
 	ircMessage(channel, buffer);
 
 	return 0;
