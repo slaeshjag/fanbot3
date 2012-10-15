@@ -54,6 +54,9 @@ void filterProcess(const char *nick, const char *hoststr, const char *command, c
 	if ((network = networkFind(config->net.network_active)) == NULL)
 		return;
 	
+	if (network->ready != NETWORK_READY)
+		return;
+	
 	for (i = 0; i < config->plugin.filters; i++)
 		filterDo(network->plugin[i].name, network->plugin[i].handle, nick, hoststr, command, arg, string);
 	
