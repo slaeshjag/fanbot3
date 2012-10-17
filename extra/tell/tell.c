@@ -52,6 +52,7 @@ void messageBufferAdd(MAIN *m, const char *message, const char *who, const char 
 	strncpy(buffer->message, message, 512);
 	buffer->message[511] = 0;
 	strncpy(buffer->who, who, 128);
+	stringToUpper(buffer->who);
 	strncpy(buffer->channel, channel, 512);
 	buffer->id = m->cnt;
 	m->cnt++;
@@ -145,14 +146,17 @@ void messageBufferDelete(MAIN *m, int id) {
 
 void checkForMessages(MAIN *m, const char *from) {
 	struct MESSAGE_BUFFER *buffer;
-	char channel[256], message[512];
+	char channel[256], message[512], nick[256];
 	int i, c;
+
+	sprintf(nick, "%s", from);
+	stringToUpper(nick);
 
 	*channel = 0;
 	c = 0;
 	buffer = m->buffer;
 	while (buffer != NULL) {
-		if (strcmp(buffer->who, from) == 0) {
+		if (strcmp(buffer->who, nick) == 0) {
 			ircMessage(buffer->who, buffer->message);
 			if (*buffer->channel == '#')
 				sprintf(channel, buffer->channel);

@@ -39,6 +39,7 @@ const char *pluginName();
 	int pluginReadData(void *connection, char *buffer, int buffer_len, int *error);
 	int pluginSendData(void *connection, const char *buffer, int buffer_len, int *error);
 	void *pluginSocketDone(void *connection);
+	void stringToUpper(char *string);
 #endif
 
 
