@@ -36,7 +36,8 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		return;
 	
 	sprintf(buff, ":%s!%s PRIVMSG %s :%s\r\n", from, host, channel, message);
-	message = &message[strlen(message) - 32];
+	message = &message[strlen(message) - 64];
+	message = (strstr(message, " ") != NULL) ? strstr(message, " ") + 1 : message;
 	if (strlen(buff) >= 512) {
 		channel = ircGetIntendedChannel(channel, from);
 		sprintf(buff, "%s: That message was exactly the length that the IRC-protocol allows. It probably got cut off. Last part of the message: »%s«", from, message);
