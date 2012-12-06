@@ -23,6 +23,14 @@ typedef struct {
 } MAIN;
 
 
+void sendHelp(const char *from) {
+	ircMessage(from, "<pling [!nick] <+hh:mm[:ss]> [message] - Remind someone about [message] in <+hh:mm[:ss]> (time relative from now)");
+	ircMessage(from, "<getpling - List all reminders that you'll get in the future");
+	ircMessage(from, "<later <+hh:mm:ss> - Remind about last reminder it sent in <+hh:mm> (time relative from now)");
+
+	return;
+}
+
 
 void messageBufferDestroy(MAIN *m) {
 	struct MESSAGE_BUFFER *buffer, *tmp;
@@ -358,6 +366,9 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
 	channel = ircGetIntendedChannel(channel, from);
+	
+	if (strcmp(message, API_HELP_CMD) == 0)
+		sendHelp(from);
 	if (strstr(message, "<later ") == message)
 		pluginRepling(handle, message, from, channel);
 	if (strstr(message, "<getpling") == message)

@@ -22,6 +22,12 @@ typedef struct {
 } MAIN;
 
 
+void sendHelp(const char *from) {
+	ircMessage(from, "<tell <nick> <message> - tell <nick> about <message> next time <nick> is around");
+
+	return;
+}
+
 
 void messageBufferDestroy(MAIN *m) {
 	struct MESSAGE_BUFFER *buffer, *tmp;
@@ -224,6 +230,8 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
+	if (strcmp(message, API_HELP_CMD) != 0)
+		sendHelp(from);
 	if (strstr(message, "<tell ") != message) {
 		checkForMessages(handle, from);
 		return;

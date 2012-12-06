@@ -18,6 +18,8 @@
 #define		FILTER_TRIG_MODE		0x10
 #define		FILTER_TRIG_PING		0x20
 
+#define		API_HELP_CMD			"<help"
+
 
 void configErrorPush(const char *err);
 const char *networkNick();

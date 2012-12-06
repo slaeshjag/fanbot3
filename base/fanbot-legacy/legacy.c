@@ -11,6 +11,13 @@ const char *pluginName() {
 }
 
 
+void sendHelp(const char *from) {
+	ircMessage(from, "Not implemented yet for legacy commands");
+
+	return;
+}
+
+
 char *pluginURLEscapeUgly(const char *string) {
 	char *new;
 	int i;
@@ -129,6 +136,11 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		return;
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
+	if (strcmp(message, API_HELP_CMD) == 0) {
+		sendHelp(from);
+		return;
+	}
+		
 	channel = ircGetIntendedChannel(channel, from);
 	for (i = 0; i < legacy->commands; i++) {
 		sscanf(message, "%s", buff);

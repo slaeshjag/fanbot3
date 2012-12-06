@@ -25,6 +25,13 @@ void *pluginDoInit(const char *network) {
 }
 
 
+void sendHelp(const char *from) {
+	ircMessage(from, "<twit <twitter user> - Get latest (non-directed) tweet or retweet from <user>");
+
+	return;
+}
+
+
 char *findTweetStart(char *foo) {
 	int i, len;
 
@@ -120,6 +127,8 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
+	if (strcmp(message, API_HELP_CMD) == 0)
+		sendHelp(from);
 	if (strstr(message, "<twit ") != message)
 		return;
 	
