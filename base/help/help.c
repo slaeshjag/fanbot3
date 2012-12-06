@@ -38,7 +38,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		return;
 	
 	channel = ircGetIntendedChannel(channel, from);
-	sprintf(buff, "%i: Sending help in query", from);
+	sprintf(buff, "%s: Sending help in query", from);
 	ircMessage(channel, buff);
 
 	return;
