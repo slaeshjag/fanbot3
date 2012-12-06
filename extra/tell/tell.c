@@ -230,7 +230,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
-	if (strcmp(message, API_HELP_CMD) != 0)
+	if (strcmp(message, API_HELP_CMD) == 0)
 		sendHelp(from);
 	if (strstr(message, "<tell ") != message) {
 		checkForMessages(handle, from);
