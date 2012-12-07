@@ -11,8 +11,12 @@ const char *pluginName() {
 }
 
 
-void sendHelp(const char *from) {
-	ircMessage(from, "Not implemented yet for legacy commands");
+void sendHelp(const char *from, LEGACY *legacy) {
+	int i;
+
+	for (i = 0; i < legacy->commands; i++)
+		if (legacy->help[i])
+			ircMessage(from, legacy->help[i]);
 
 	return;
 }
@@ -43,6 +47,7 @@ void *pluginDestroy(void *handle) {
 
 	free(legacy->command);
 	free(legacy->file);
+	free(legacy->help);
 	free(legacy->buffer);
 	free(legacy);
 
@@ -71,8 +76,9 @@ void *pluginDoInit(const char *network) {
 
 	legacy->command = malloc(sizeof(char *) * legacy->commands);
 	legacy->file = malloc(sizeof(char *) * legacy->commands);
+	legacy->help = malloc(sizeof(char *) * legacy->commands);
 
-	if (!legacy->command || !legacy->file)
+	if (!legacy->command || !legacy->file || !legacy->help)
 		return pluginDestroy(legacy);
 
 	/* There. Now all I need to do is mangle the string and make it ugly */
@@ -93,6 +99,20 @@ void *pluginDoInit(const char *network) {
 			tmp++;
 		}
 		legacy->file[i] = tmp;
+	}
+
+	for (i = 0; i < legacy->commands; i++) {
+		if (!legacy->file[i]) {
+			legacy->help[i] = NULL;
+			continue;
+		}
+
+		tmp = strchr(legacy->file[i], ';');
+		if (tmp) {
+			*tmp = 0;
+			tmp++;
+		}
+		legacy->help[i] = tmp;
 	}
 
 	return legacy;
@@ -137,7 +157,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
 	if (strcmp(message, API_HELP_CMD) == 0) {
-		sendHelp(from);
+		sendHelp(from, legacy);
 		return;
 	}
 		

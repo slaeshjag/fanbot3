@@ -17,6 +17,7 @@ typedef struct {
 	char			*buffer;
 	char			**command;
 	char			**file;
+	char			**help;
 	int			commands;
 } LEGACY;
 
