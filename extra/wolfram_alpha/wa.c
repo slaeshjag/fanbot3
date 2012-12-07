@@ -66,6 +66,10 @@ char stripGetRealChar(char *str, int *cnt) {
 		ret = ' ';
 	}
 
+	else if (strstr(buff, "&apos") == buff) {
+		ret = '\'';
+	}
+
 	else if (strstr(buff, "&#") == buff) {
 		ch = 0;
 		sscanf(&buff[2], "%i", &ch);
@@ -135,7 +139,7 @@ void escapeSilly(const char *string, char *new) {
 
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	WA *wa = handle;
-	char *buffer, buff[2048], new[1584], *print, *orig_buff;
+	char *buffer, buff[2048], new[1584], new2[1584], *print, *orig_buff;
 	int i;
 
 	if (strcmp(command, "PRIVMSG") != 0)
@@ -192,9 +196,12 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	for (i = 0; print[i]; i++)
 		if (print[i] == '\n')
 			print[i] = ' ';
+	
 	if ((buffer = strstr(print, "</plaintext>")))
 		*buffer = 0;
-	snprintf(buff, 512, "%s: WA: %s", from, print);
+	stripTags(print, new2, strlen(print));
+	print = new2;
+	snprintf(buff, 512, "%s: WA: %s", from, new2);
 	free(orig_buff);
 	ircMessage(channel, buff);
 	
