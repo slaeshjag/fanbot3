@@ -62,6 +62,7 @@ struct NETWORK_ENTRY {
 	int			timers;
 
 	struct NETWORK_ENTRY	*next;
+	TIMER			timer_e;
 };
 
 

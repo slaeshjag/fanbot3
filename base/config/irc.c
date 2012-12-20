@@ -57,6 +57,20 @@ void ircMessage(const char *channel, const char *message) {
 }
 
 
+void ircPing(const char *msg) {
+	struct NETWORK_ENTRY *network;
+	char sendbuff[512];
+	int error;
+
+	if (!(network = networkFind(config->net.network_active)))
+		return;
+	sprintf(sendbuff, "PING :%s\r\n", msg);
+	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
+	
+	return;
+}
+
+
 void ircPong(const char *msg) {
 	struct NETWORK_ENTRY *network;
 	char sendbuff[512];

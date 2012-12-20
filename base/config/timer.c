@@ -9,6 +9,7 @@ void timerInit() {
 	
 	network->timer = NULL;
 	network->timers = 0;
+	network->timer_e.last_ping = time(NULL);
 }
 
 
@@ -98,7 +99,12 @@ void timerProcess() {
 		configErrorPush("Couldn't find the network o_O");
 		return;
 	}
-	
+
+	if (now - network->timer_e.last_ping > 600) {
+		network->timer_e.last_ping = now;
+		ircPing("Connection alive?");
+	}
+
 	timer = network->timer;
 	now = time(NULL);
 	while (timer != NULL) {

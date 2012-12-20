@@ -9,6 +9,10 @@ struct TIMER_ENTRY {
 	struct TIMER_ENTRY	*next;
 };
 
+typedef struct {
+	time_t			last_ping;
+} TIMER;
+
 void timerInit();
 int timerAdd(time_t when, const char *plugin);
 void timerDelete(int id);
