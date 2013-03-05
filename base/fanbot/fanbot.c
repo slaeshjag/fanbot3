@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
 	signal(SIGUSR1, reload);
 	signal(SIGINT, die);
 	signal(SIGSEGV, segfault);
+	signal(SIGPIPE, SIG_IGN);
 
 	for (;;) {
 		if ((fanbot.library = dlopen("base/config.so", RTLD_NOW | RTLD_GLOBAL)) == NULL) {
