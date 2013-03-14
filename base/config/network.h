@@ -45,6 +45,8 @@ struct NETWORK_ENTRY {
 	int			port;
 	char			nick[64];
 	char			layer[64];
+	char			identify_to[64];
+	char			identify_key[64];
 
 	char			process_buffer[513];
 	char			active_buffer[513];
@@ -84,6 +86,7 @@ void networkNickSet(const char *name, const char *nick);
 void networkLayerSet(const char *name, const char *layer);
 void networkReconnDelaySet(const char *name, int delay);
 void networkChannelAdd(const char *name, const char *channel, const char *key);
+void networkIdentifyAdd(const char *name, const char *who, const char *key);
 void networkWait();
 
 void networkPushLine(const char *network, const char *channel, const char *buffer);

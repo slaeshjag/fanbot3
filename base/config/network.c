@@ -114,6 +114,21 @@ void networkChannelAdd(const char *name, const char *chan, const char *key) {
 }
 
 
+void networkIdentifyAdd(const char *name, const char *who, const char *key) {
+	struct NETWORK_ENTRY *network;
+
+	if (!(network = networkFind(name)))
+		return;
+	
+	strncpy(network->identify_to, who, 64);
+	strncpy(network->identify_key, key, 64);
+
+	fprintf(stderr, "Debug: Added identify %s to network %s\n", who, name);
+
+	return;
+}
+
+
 void networkAdd(const char *name) {
 	struct NETWORK_ENTRY *network;
 
@@ -124,6 +139,8 @@ void networkAdd(const char *name) {
 	*network->host = *network->layer = 0;
 	network->port = 6667;
 	strncpy(network->nick, "fanbot3", 64);
+	*network->identify_to = 0;
+	*network->identify_key = 0;
 	network->network_handle = NULL;
 	network->channel = NULL;
 	network->next = 0;
@@ -554,6 +571,7 @@ void networkWait() {
 					channel->cap = NETWORK_CHANNEL_SEND_CAP;
 					channel = channel->next;
 				}
+				ircIdentify(next->identify_to, next->identify_key);
 				next->ready = NETWORK_READY;
 		}
 		else if (next->ready == NETWORK_READY)

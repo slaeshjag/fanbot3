@@ -93,7 +93,7 @@ void timerProcess() {
 	NETWORK_PLUGIN_DATA *plug_data;
 	struct TIMER_ENTRY *timer;
 	struct PLUGIN_FILTER_ENTRY *filter;
-	time_t now;
+	time_t now = time(NULL);
 	
 	if ((network = networkFind(config->net.network_active)) == NULL) {
 		configErrorPush("Couldn't find the network o_O");

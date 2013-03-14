@@ -132,6 +132,16 @@ void ircJoin(const char *channel, const char *key) {
 }
 
 
+void ircIdentify(const char *who, const char *key) {
+	char buff[128];
+
+	sprintf(buff, "identify %s\n", key);
+	ircMessage(who, buff);
+
+	return;
+}
+
+
 void ircLine() {
 	struct NETWORK_ENTRY *network;
 	char *hoststr, *nick, *command, *arg, *string;
