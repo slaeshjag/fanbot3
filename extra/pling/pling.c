@@ -303,7 +303,7 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 		return -1;
 	}
 	
-	seconds = 0;
+	seconds = minutes = hours = 0;
 	sscanf(message, "+%i:%i:%i", &hours, &minutes, &seconds);
 	if (hours == 0 && minutes == 0) {
 		sprintf(buffer, "%s: Usage: <later +hh:mm", from);

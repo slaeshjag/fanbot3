@@ -4,7 +4,7 @@ default:
 	mkdir -p bin/extra
 	mkdir -p bin/conf
 	mkdir -p bin/data
-	cp skel/* bin/conf
+	cp -ui skel/* bin/conf
 	cd base && make
 	cd extra && make
 
