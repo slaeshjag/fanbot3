@@ -4,6 +4,7 @@ default:
 	cd pling && make
 	cd tell && make
 	cd wolfram_alpha && make
+	cd makerspace.se && make
 
 clean:
 	cd messagelen && make clean
@@ -11,3 +12,4 @@ clean:
 	cd pling && make clean
 	cd tell && make clean
 	cd wolfram_alpha && make clean
+	cd makerspace.se && make clean
