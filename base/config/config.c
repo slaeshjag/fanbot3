@@ -65,7 +65,13 @@ int configRead(const char *path, unsigned int what) {
 
 
 void configErrorPush(const char *error) {
-	fprintf(stderr, "[%s] %s\n", config->net.network_active, error);
+	struct tm *time_rep;
+	time_t time_sec;
+
+	time_sec = time(NULL);
+	time_rep = localtime(&time_sec);
+
+	fprintf(stderr, "(%04i-%02i-%02i %02i:%02i:%02i) [%s] %s\n", time_rep->tm_year + 1900, time_rep->tm_mon + 1, time_rep->tm_mday, time_rep->tm_hour, time_rep->tm_min, time_rep->tm_sec, config->net.network_active, error);
 	
 	return;
 }
