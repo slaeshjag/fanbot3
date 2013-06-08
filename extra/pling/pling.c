@@ -332,21 +332,25 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 
 int pluginListPling(MAIN *m, const char *from) {
 	struct MESSAGE_BUFFER *buffer;
-	char message[512];
-	int hours, minutes;
+	char message[512], who1[128], who2[128];
+	int hours, minutes, days;
 	time_t now, diff;
 	now = time(NULL);
 	
+	strncpy(who1, from, 128);
 	sprintf(message, "List of reminders:");
 	ircMessage(from, message);
 
 	buffer = m->buffer;
 	while (buffer != NULL) {
-		if (strcmp(buffer->who, from) == 0) {
+		strncpy(who2, buffer->who, 128);
+		stringToUpper(who2);
+		if (strcmp(who2, who1) == 0) {
 			diff = buffer->when - now;
 			minutes = (diff % 3600) / 60;
-			hours = diff / 3600;
-			sprintf(message, "+%i:%i %s", hours, minutes, buffer->message);
+			hours = (diff % 86400) / 3600;
+			days = diff / 86400;
+			sprintf(message, "+%id, %i:%i %s", days, hours, minutes, buffer->message);
 			ircMessage(from, message);
 		}
 		buffer = buffer->next;
