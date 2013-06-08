@@ -338,6 +338,7 @@ int pluginListPling(MAIN *m, const char *from) {
 	now = time(NULL);
 	
 	strncpy(who1, from, 128);
+	stringToUpper(who1);
 	sprintf(message, "List of reminders:");
 	ircMessage(from, message);
 
