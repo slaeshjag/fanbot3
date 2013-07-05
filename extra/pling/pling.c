@@ -362,7 +362,7 @@ int pluginListPling(MAIN *m, const char *from) {
 			minutes = (diff % 3600) / 60;
 			hours = (diff % 86400) / 3600;
 			days = diff / 86400;
-			sprintf(message, "+%id, %i:%i %s        [id: %i]", days, hours, minutes, buffer->message, buffer->id);
+			sprintf(message, "+%id, %i:%i %s | [%i]", days, hours, minutes, buffer->message, buffer->id);
 			ircMessage(from, message);
 		}
 		buffer = buffer->next;
