@@ -27,6 +27,7 @@ void sendHelp(const char *from) {
 	ircMessage(from, "<pling [!nick] <+hh:mm[:ss]> [message] - Remind someone about [message] in <+hh:mm[:ss]> (time relative from now)");
 	ircMessage(from, "<getpling - List all reminders that you'll get in the future");
 	ircMessage(from, "<later <+hh:mm:ss> - Remind about last reminder it sent in <+hh:mm> (time relative from now)");
+	ircMessage(from, "<rmpling <id> - Delete a reminder");
 
 	return;
 }
@@ -183,15 +184,22 @@ void messageBufferDeleteNick(MAIN *m, const char *who) {
 }
 
 
-void messageBufferDelete(MAIN *m, int id) {
+void messageBufferDelete(MAIN *m, int id, char *who) {
 	struct MESSAGE_BUFFER *buffer, *old;
+	char who1[128], who2[128];
 
 	if (m->buffer == NULL)
 		return;
+	
+	sprintf(who1, "%s", who);
+	stringToUpper(who1);
 
 	old = m->buffer;
 	buffer = old->next;
-	if (old->id == id) {
+	sprintf(who2, "%s", old->who);
+	stringToUpper(who2);
+
+	if (old->id == id && !strcmp(who1, who2)) {
 		m->buffer = old->next;
 		timerDelete(old->id);
 		messageBufferDeleteNick(m, old->who);
@@ -199,7 +207,10 @@ void messageBufferDelete(MAIN *m, int id) {
 		return;
 	}
 	while (buffer != NULL) {
-		if (buffer->id == id) {
+		sprintf(who2, "%s", old->who);
+		stringToUpper(who2);
+	
+		if (buffer->id == id && !strcmp(who1, who2)) {
 			old->next = buffer->next;
 			timerDelete(buffer->id);
 			messageBufferDeleteNick(m, buffer->who);
@@ -271,7 +282,7 @@ void pluginTimerPoke(void *handle, int id) {
 		return;
 	sprintf(buff, "%s: %s\n", buffer->who, buffer->message);
 	ircMessage(buffer->channel, buff);
-	messageBufferDelete(m, id);
+	messageBufferDelete(m, id, buffer->who);
 
 	return;
 }
@@ -351,13 +362,24 @@ int pluginListPling(MAIN *m, const char *from) {
 			minutes = (diff % 3600) / 60;
 			hours = (diff % 86400) / 3600;
 			days = diff / 86400;
-			sprintf(message, "+%id, %i:%i %s", days, hours, minutes, buffer->message);
+			sprintf(message, "+%id, %i:%i %s        [id: %i]", days, hours, minutes, buffer->message, buffer->id);
 			ircMessage(from, message);
 		}
 		buffer = buffer->next;
 	}
 
 	return 0;
+}
+
+
+void pluginDeletePling(void *handle, const char *from, const char *message) {
+	int id;
+
+	message += strlen("<rmpling");
+	id = atoi(message);
+	messageBufferDelete(handle, id, from);
+
+	return;
 }
 
 
@@ -378,6 +400,8 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		pluginRepling(handle, message, from, channel);
 	if (strstr(message, "<getpling") == message)
 		pluginListPling(handle, from);
+	if (strstr(message, "<rmpling") == message)
+		pluginDeletePling(handle, from, message);
 	if (strstr(message, "<pling ") != message)
 		return;
 	
