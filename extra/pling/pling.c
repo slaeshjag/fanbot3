@@ -416,7 +416,11 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		sprintf(buff, "<%s> reminds you: %s", from, message);
 	else
 		sprintf(buff, "%s", message);
-	messageBufferAdd(handle, buff, to, channel, then);
+
+	if (*channel != '#')
+		messageBufferAdd(handle, buff, to, channel, then);
+	else
+		messageBufferAdd(handle, buff, to, to, then);
 
 	if (start_from)
 		sprintf(buff, "%s: Mkay, I'll remind %s in %i hours, %i minutes and %i seconds", from, to, hours, minutes, seconds);

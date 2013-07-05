@@ -136,23 +136,25 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	while (*message == ' ')
 		message++;
 	channel = ircGetIntendedChannel(channel, from);
-	sprintf(buff, "http://twitter.com/%s", message);
+	sprintf(buff, "http://api.twitter.com/statuses/user_timeline.json?screen_name=%s", message);
+	fprintf(stderr, "URL: %s\n", buff);
 	if (getPageFromURL(buff, NULL, NULL, &buffer) != NET_NO_ERROR) {
 		sprintf(buff, "%s: Internal error.", from);
 		ircMessage(channel, buff);
 		return;
 	}
 	
-	if (strstr(buffer, "js-tweet-text") == NULL) {
+	if (strstr(buffer, "\"text\":\"") == NULL) {
+		fprintf(stderr, "%s", buffer);
 		free(buffer);
 		sprintf(buff, "%s: User %s doesn't seem to exist", from, message);
 		ircMessage(channel, buff);
 		return;
 	}
 
-	next = strstr(buffer, "js-tweet-text");
-	if (strlen(next) > strlen("js-tweet-text\">\n"))
-		next += strlen("js-tweet-text\">\n");
+	next = strstr(buffer, "\"text\":\"");
+	if (strlen(next) > strlen("\"text\":\""))
+		next += strlen("\"text\":\"");
 	else {
 		sprintf(buff, "%s: Error in data from Twitter. They probably changed their site again...", from);
 		ircMessage(channel, buff);
@@ -173,9 +175,9 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 			return;
 		}
 
-		next = strstr(next, "js-tweet-text");
-		if (strlen(next) > strlen("js-tweet-text\">\n"))
-			next += strlen("js-tweet-text\">\n");
+		next = strstr(next, "\"text\":\"");
+		if (strlen(next) > strlen("\"text\":\""))
+			next += strlen("\"text\":\"");
 		else break;
 		next = findTweetStart(next);
 	}
