@@ -190,8 +190,11 @@ void messageBufferDelete(MAIN *m, int id, char *who) {
 
 	if (m->buffer == NULL)
 		return;
-	
-	sprintf(who1, "%s", who);
+
+	if (who)
+		sprintf(who1, "%s", who);
+	else
+		*who1 = 0;
 	stringToUpper(who1);
 
 	old = m->buffer;
