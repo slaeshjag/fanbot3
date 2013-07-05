@@ -199,7 +199,7 @@ void messageBufferDelete(MAIN *m, int id, char *who) {
 	sprintf(who2, "%s", old->who);
 	stringToUpper(who2);
 
-	if (old->id == id && !strcmp(who1, who2)) {
+	if (old->id == id && (!strcmp(who1, who2) || !who)) {
 		m->buffer = old->next;
 		timerDelete(old->id);
 		messageBufferDeleteNick(m, old->who);
@@ -210,7 +210,7 @@ void messageBufferDelete(MAIN *m, int id, char *who) {
 		sprintf(who2, "%s", old->who);
 		stringToUpper(who2);
 	
-		if (buffer->id == id && !strcmp(who1, who2)) {
+		if (buffer->id == id && (!strcmp(who1, who2) || !who)) {
 			old->next = buffer->next;
 			timerDelete(buffer->id);
 			messageBufferDeleteNick(m, buffer->who);
@@ -282,7 +282,7 @@ void pluginTimerPoke(void *handle, int id) {
 		return;
 	sprintf(buff, "%s: %s\n", buffer->who, buffer->message);
 	ircMessage(buffer->channel, buff);
-	messageBufferDelete(m, id, buffer->who);
+	messageBufferDelete(m, id, NULL);
 
 	return;
 }
