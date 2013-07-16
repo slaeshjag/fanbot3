@@ -5,6 +5,7 @@ default:
 	cd tell && make
 	cd wolfram_alpha && make
 	cd makerspace.se && make
+	cd utf8valid && make
 
 clean:
 	cd messagelen && make clean
@@ -13,3 +14,4 @@ clean:
 	cd tell && make clean
 	cd wolfram_alpha && make clean
 	cd makerspace.se && make clean
+	cd utf8valid && make clean
