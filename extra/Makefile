@@ -6,6 +6,7 @@ default:
 	cd wolfram_alpha && make
 	cd makerspace.se && make
 	cd utf8valid && make
+	cd log && make
 
 clean:
 	cd messagelen && make clean
@@ -15,3 +16,4 @@ clean:
 	cd wolfram_alpha && make clean
 	cd makerspace.se && make clean
 	cd utf8valid && make clean
+	cd log && make clean
