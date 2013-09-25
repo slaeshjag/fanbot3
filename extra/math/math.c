@@ -64,6 +64,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	if (strcmp(message, API_HELP_CMD) == 0)
 		sendHelp(from);
 	if (strstr(message, "<s ") == message) {
+		t = time(NULL);
 		i = j = 0;
 		sscanf(message, "<s %i, %i", &i, &j);
 		k = stirling(i, j, time(NULL));
