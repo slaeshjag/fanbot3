@@ -7,6 +7,7 @@ default:
 	cd makerspace.se && make
 	cd utf8valid && make
 	cd log && make
+	cd math && make
 
 clean:
 	cd messagelen && make clean
@@ -17,3 +18,4 @@ clean:
 	cd makerspace.se && make clean
 	cd utf8valid && make clean
 	cd log && make clean
+	cd math && make clean
