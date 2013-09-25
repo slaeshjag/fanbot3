@@ -55,6 +55,7 @@ void pluginTimerPoke(void *handle, int id) {
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	char buff[520];
 	int i, j, k;
+	time_t t;
 
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
@@ -66,10 +67,10 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		i = j = 0;
 		sscanf(message, "<s %i, %i", &i, &j);
 		k = stirling(i, j, time(NULL));
-		if (k >= 0)
-			sprintf(buff, "S(%i, %i) = %i", i, j, k);
-		else
+		if (time(NULL) - t >= 5)
 			sprintf(buff, "S(%i, %i) took too long .-.", i, j);
+		else
+			sprintf(buff, "S(%i, %i) = %i", i, j, k);
 		ircMessage(channel, buff);
 	}
 	
