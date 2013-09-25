@@ -2,18 +2,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include <config/api.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
 
-int stirling(int n, int k) {
+int stirling(int n, int k, time_t t) {
+	if (time(NULL) - t > 5)
+		return -1;
 	if (k == 1 || n == k)
 		return 1;
 	if (!(1 < k && k < n))
 		return 0;
-	return stirling(n - 1, k - 1) + k * stirling(n - 1, k);
+	return stirling(n - 1, k - 1, t) + k * stirling(n - 1, k, t);
 }
 
 
@@ -62,8 +65,11 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	if (strstr(message, "<s ") == message) {
 		i = j = 0;
 		sscanf(message, "<s %i, %i", &i, &j);
-		k = stirling(i, j);
-		sprintf(buff, "S(%i, %i) = %i", i, j, k);
+		k = stirling(i, j, time(NULL));
+		if (k >= 0)
+			sprintf(buff, "S(%i, %i) = %i", i, j, k);
+		else
+			sprintf(buff, "S(%i, %i) took too long .-.", i, j);
 		ircMessage(channel, buff);
 	}
 	
