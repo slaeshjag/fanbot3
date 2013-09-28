@@ -6,6 +6,7 @@ default:
 #	cd testplugin && make
 	cd fanbot-legacy && make
 	cd help && make
+	cd keepalive && make
 
 clean:
 	cd fanbot && make clean
@@ -15,3 +16,4 @@ clean:
 #	cd testplugin && make clean
 	cd fanbot-legacy && make clean
 	cd help && make clean
+	cd keepalive && make clean

@@ -101,6 +101,22 @@ void ircQuit(const char *msg) {
 }
 
 
+void ircRaw(const char *raw) {
+	struct NETWORK_ENTRY *network;
+	char sendbuff[512];
+	int error;
+
+	if (!(network = networkFind(config->net.network_active)))
+		return;
+	strncpy(sendbuff, raw, 509);
+	sendbuff[509] = 0;
+	strcat(sendbuff, "\r\n");
+	layerWrite(network->layer, network->network_handle, sendbuff, strlen(sendbuff), &error);
+	
+	return;
+}
+
+
 void ircNick(const char *nick) {
 	struct NETWORK_ENTRY *network;
 	char sendbuff[512];
