@@ -201,7 +201,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		*buffer = 0;
 	stripTags(print, new2, strlen(print));
 	print = new2;
-	snprintf(buff, 512, "%s: WA: %s", from, new2);
+	snprintf(buff, 512, "%s: WA: %s ;; URL: http://www.wolframalpha.com/input/?i=%s", from, new2, new);
 	buff[511] = 0;
 	free(orig_buff);
 	ircMessage(channel, buff);
