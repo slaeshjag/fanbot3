@@ -43,7 +43,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
 	
-	if (!strcmp(message, "<password"))
+	if (strcmp(message, "<password"))
 		return;
 	
 	fp = fopen("/dev/urandom", "rb");
