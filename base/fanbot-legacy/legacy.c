@@ -166,7 +166,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		sscanf(message, "%s", buff);
 		if (strcmp(buff, legacy->command[i]) == 0) {
 			data = pluginURLEscapeUgly(message);
-			sprintf(buff, "%s%s?args=%s", HOST_PREFIX, legacy->file[i], data);
+			sprintf(buff, "%s%s?args=%snick=%s", HOST_PREFIX, legacy->file[i], data, from);
 			free(data);
 			pluginProcessHit(channel, message, buff);
 			return;
