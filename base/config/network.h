@@ -8,6 +8,8 @@
 
 #define	NETWORK_CHANNEL_SEND_CAP		5
 #define	NETWORK_BUFFER_QUEUE			5
+#define	NETWORK_CONNECT_TIMEOUT			120
+#define	NETWORK_PING_TIMEOUT			(30 * 60)
 
 #define	NETWORK_NOT_CONNECTED			0
 #define	NETWORK_CONNECTING			1
@@ -54,6 +56,7 @@ struct NETWORK_ENTRY {
 
 	int			ready;
 	int			reconnect_delay;
+	time_t			last_event;
 	time_t			disconnect;
 	int			socket;
 	void			*network_handle;

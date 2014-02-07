@@ -166,8 +166,20 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 	do {
 		if (network->ready == NETWORK_NOT_CONNECTED)
 			return;
+		if (network->ready == NETWORK_CONNECTING && time(NULL) - network->last_event >= NETWORK_CONNECT_TIMEOUT) {
+			configErrorPush("Connection timed out");
+			networkDisconnect(network->name, "Timed out");
+			return;
+		}
+
 		i = layerRead(network->layer, network->network_handle, &network->process_buffer[network->buff_pos], 512 - network->buff_pos, &error);
 		if (i <= 0) {
+			if (time(NULL) - network->last_event >= NETWORK_PING_TIMEOUT) {
+				configErrorPush("Connection seems dead");
+				networkDisconnect(network->name, "No data in an unreasonably long time");
+				return;
+			}
+
 			if (error == EWOULDBLOCK)
 				break;	
 			configErrorPush("Connection reset");
@@ -175,6 +187,7 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 			return;
 		}
 
+		network->last_event = time(NULL);
 		network->process_buffer[i + network->buff_pos] = 0;
 	
 		for (j = k = 0; j < i + network->buff_pos; j++) {
@@ -386,6 +399,7 @@ void networkConnect(const char *name) {
 	}
 
 	network->ready = NETWORK_CONNECTING;
+	network->last_event = time(NULL);
 	network->socket = layerSocketGet(network->layer, network->network_handle);
 
 	/* Make socket non-blocking */
