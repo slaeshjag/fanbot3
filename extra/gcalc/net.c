@@ -1,7 +1,7 @@
 #include "net.h"
 
 
-char *getURLData(int sock, char *host) {
+char *getURLData(BIO *bio, char *host) {
 	char *buff, *temp, c;
 	int i, cnt, len;
 	
@@ -11,7 +11,7 @@ char *getURLData(int sock, char *host) {
 	while (strstr(buff, "Content-Length:") == NULL) {
 		c = 0;
 		while (c != '\n') {
-			if (recv(sock, &c, 1, 0) < 1) {
+			if (BIO_read(bio, &c, 1) < 1) {
 				printf("Dying...\n");
 				free(buff);
 				return NULL;
@@ -62,7 +62,10 @@ char *getURLData(int sock, char *host) {
 		sscanf(temp, "Content-Length: %i", &len);
 	
 	while (cnt != 2) {
-		recv(sock, &c, 1, 0);
+		if (BIO_read(bio, &c, 1) < 1) {
+			free(buff);
+			return NULL;
+		}
 		if (c == '\n')
 			cnt++;
 		else if (c != '\r')
@@ -83,7 +86,7 @@ char *getURLData(int sock, char *host) {
 			buff = temp;
 			temp = NULL;
 			i = len;
-			len += recv(sock, &buff[len], 200, 0);
+			len += BIO_read(bio, &buff[len], 200);
 			if (len-i == 0) {
 				buff[len] = 0;
 				return buff;
@@ -100,7 +103,7 @@ char *getURLData(int sock, char *host) {
 	buff = temp;
 	temp = NULL;
 	for (i = 0; i < len;) {
-		if ((i += recv(sock, &buff[i], len-i, 0)) < 1) {
+		if ((i += BIO_read(bio, &buff[i], len-i)) < 1) {
 			buff[len] = 0;
 			return buff;
 		}
@@ -113,11 +116,11 @@ char *getURLData(int sock, char *host) {
 
 
 int getPageFromURL(char *rurl, char *usrname, char *password, char **buff) {
-	int sock, port;
+	int port;
 	char *host, *bitbucket, *url, *foo;
-	
-	struct sockaddr_in address;
-	struct hostent *hp;
+	BIO *bio;
+	SSL_CTX *ctx;
+	SSL *ssl;
 	
 	if (rurl == NULL) {
 		return NET_ERROR_NO_SUCH_HOST;
@@ -130,13 +133,13 @@ int getPageFromURL(char *rurl, char *usrname, char *password, char **buff) {
 	
 	sprintf(url, "%s", rurl);
 	
-	if (strstr(url, "http://") != url) {
+	if (strstr(url, "https://") != url) {
 		fprintf(stderr, "Error: unhandled protocol in URL: %s\n", url);
 		free(url);
 		return NET_ERROR_BAD_PROTOCOL;
 	}
 	
-	url += 7;
+	url += 8;
 	
 	if (strstr(url, "/") != NULL) {
 		bitbucket = strstr(url, "/");
@@ -145,7 +148,7 @@ int getPageFromURL(char *rurl, char *usrname, char *password, char **buff) {
 		bitbucket = NULL;
 		
 	if ((host = malloc(strlen(url) + 1)) == NULL) {
-		url -= 7;
+		url -= 8;
 		free(url);
 		fprintf(stderr, "Error: Out of RAM.\n");
 		return NET_ERROR_GENERAL_LOCAL_ERROR;
@@ -159,73 +162,48 @@ int getPageFromURL(char *rurl, char *usrname, char *password, char **buff) {
 	if (strstr(url, ":") != NULL) {
 		port = atoi(1 + strstr(url, ":"));
 	} else {
-		port = 80;
+		port = 443;
 	}
 	
 	if (bitbucket != NULL) 
 		*bitbucket = '/';
 	
-	
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
-		fprintf(stderr, "Error: Unable to create a socket.\n");
-		free(host);
-		url -= 7;
-		free(url);
+	ctx = SSL_CTX_new(SSLv23_client_method());
+	if (!(bio = BIO_new_ssl_connect(ctx))) {
+		fprintf(stderr, "Unable to allocate a BIO\n");
 		return NET_ERROR_GENERAL_LOCAL_ERROR;
 	}
-	
-	if ((hp = gethostbyname(host)) == NULL) {
-		fprintf(stderr, "Failed to resolve host '%s'.\n", host);
-		url -= 7;
-		free(url);
-		free(host);
+
+	BIO_get_ssl(bio, &ssl);
+	SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
+	BIO_set_conn_hostname(bio, host);
+	BIO_set_conn_int_port(bio, &port);
+
+	if (BIO_do_connect(bio) < 0)
 		return NET_ERROR_NO_SUCH_HOST;
-	}
 	
-	address.sin_family = AF_INET;
-	address.sin_port = htons(port);
-	address.sin_addr.s_addr = *( u_long * ) hp->h_addr;
-	
-	if (connect(sock, (struct sockaddr *) &address, sizeof(struct sockaddr)) == -1) {
-		fprintf(stderr, "Error: Failed to connect to host '%s'.\n", host);
-		free(host);
-		url -= 7;
-		free(url);
-		return NET_ERROR_CONN_FAILED;
-	}
-	
-	send(sock, "GET ", 4, 0);
+	BIO_write(bio, "GET ", 4);
+	fprintf(stderr, "Contacting %s port %i url %s\n", host, port, bitbucket);
 	
 	if (bitbucket != NULL)
-		send(sock, bitbucket, strlen(bitbucket), 0);
+		BIO_write(bio, bitbucket, strlen(bitbucket));
 	else 
-		send(sock, "/", 1, 0);
+		BIO_write(bio, "/", 1);
 	
-	send(sock, " HTTP/1.0\r\n", 11, 0);
-	send(sock, NET_USER_AGENT, strlen(NET_USER_AGENT), 0);
-	send(sock, "Host: ", 6, 0);
-	send(sock, host, strlen(host), 0);
-	send(sock, "\r\n", 2, 0);
+	BIO_write(bio, " HTTP/1.0\r\n", 11);
+	BIO_write(bio, NET_USER_AGENT, strlen(NET_USER_AGENT));
+	BIO_write(bio, "Host: ", 6);
+	BIO_write(bio, host, strlen(host));
+	BIO_write(bio, "\r\n", 2);
 	
-	/*
+	BIO_write(bio, "\r\n\r\n", 4);
 	
-	*** Borken, needs code to convert everything to base64 first. ***
-	
-	if (usrname != NULL && password != NULL) {
-		printf("Sending auth...\n");
-		send(sock, "Authorization: basic ", 20 , 0);
-		send(sock, usrname, strlen(usrname), 0);
-		send(sock, ":", 1, 0);
-		send(sock, password, strlen(password), 0);
-	}*/
-	
-	send(sock, "\r\n\r\n", 4, 0);
-	
-	*buff = getURLData(sock, host);
-	url -= 7;
+	*buff = getURLData(bio, host);
+	url -= 8;
 	free(url);
 	free(host);
-	close(sock);
+	BIO_free_all(bio);
+	SSL_CTX_free(ctx);
 	
 	if (*buff == NULL)
 		return NET_ERROR_NO_DATA_FROM_SERVER;

@@ -8,6 +8,10 @@
 #include <netdb.h>
 #include <sys/types.h>
 
+#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 
 #define NET_NO_ERROR 0
 #define NET_ERROR_BAD_PROTOCOL -1

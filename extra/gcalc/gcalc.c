@@ -24,7 +24,8 @@ const char *pluginName() {
 void *pluginDestroy(void *handle) {
 	struct regexes *r = handle;
 
-
+	pcre_free(r->match1);
+	pcre_free(r->match2);
 	free(r);
 	return NULL;
 }
@@ -32,10 +33,20 @@ void *pluginDestroy(void *handle) {
 
 void *pluginDoInit(const char *network) {
 	struct regexes *r;
+	const char *err;
+	int errno;
 
 	r = malloc(sizeof(*r));
-	r->match1 = pcre_compile("/\\<\\s*span[^\\>]*id\\s*\\=\\s*\"\\s*cwos\\s*\"[^\\>]*\\>\\s*([^\\<]*)\\s*\\<\\s*\\/\\s*span\\s*\\>/", 0, NULL, NULL, NULL);
-	r->match2 = pcre_compile("/\\<\\s*div\\b[^\\>]+\\bclass\\s*\\=\\s*\"[^\"]*\\b(vk_ans|vk_bk)\\b[^\"]*\\b(vk_ans|vk_bk)\\b[^\"]*\"[^\\>]*\\>\\s*([^\\<]*)\\b\\s*\\<\\s*\\/\\s*div\\s*\\>/", 0, NULL, NULL, NULL);
+	r->match1 = pcre_compile("\\<\\s*span[^\\>]*id\\s*\\=\\s*\"\\s*cwos\\s*\"[^\\>]*\\>\\s*([^\\<]*)\\s*\\<\\s*\\/\\s*span\\s*\\>", PCRE_DOTALL, &err, &errno, NULL);
+	r->match2 = pcre_compile("\\<\\s*div\\b[^\\>]+\\bclass\\s*\\=\\s*\"[^\"]*\\b(vk_ans|vk_bk)\\b[^\"]*\\b(vk_ans|vk_bk)\\b[^\"]*\"[^\\>]*\\>\\s*([^\\<]*)\\b\\s*\\<\\s*\\/\\s*div\\s*\\>", PCRE_DOTALL, &err, &errno, NULL);
+
+	if (!r->match1 || !r->match2)
+		fprintf(stderr, "Regex compile failed\n");
+
+	SSL_library_init();
+	SSL_load_error_strings();
+	ERR_load_BIO_strings();
+	OpenSSL_add_all_algorithms();
 
 	return r;
 }
@@ -64,7 +75,9 @@ void plugin_escape_string(char *out, const char *in) {
 
 
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
-	char *buffer, *next, buff[2048], *print, buff_request[2048];
+	struct regexes *r = handle;
+	char *buffer, buff[2048], buff_request[2048];
+	int ovect[63], rc, bufflen;
 
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
@@ -83,7 +96,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	channel = ircGetIntendedChannel(channel, from);
 
 	plugin_escape_string(buff_request, message);
-	sprintf(buff, "https://www.google.se/search?q=%s", buff_request);
+	sprintf(buff, "https://www.google.com/search?q=%s", buff_request);
 	fprintf(stderr, "URL: %s\n", buff);
 	if (getPageFromURL(buff, NULL, NULL, &buffer) != NET_NO_ERROR) {
 		sprintf(buff, "%s: Internal error.", from);
@@ -91,7 +104,22 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		return;
 	}
 
-	fprintf(stderr, "%s\n", buffer);
+	/* Extract reply */
+	bufflen = strlen(buffer);
+	if ((rc = pcre_exec(r->match1, NULL, buffer, bufflen, 0, 0, ovect, 63)) >= 1) {
+		memcpy(buff, &buffer[ovect[2]], ovect[3] - ovect[2]);
+		buff[ovect[3] - ovect[2]] = 0;
+	} 
+	else if ((rc = pcre_exec(r->match2, NULL, buffer, bufflen, 0, 0, ovect, 63)) >= 3) {
+		memcpy(buff, &buffer[ovect[6]], ovect[7] - ovect[6]);
+		buff[ovect[7] - ovect[6]] = 0;
+	} else {
+		sprintf(buff, "Invalid expression %i\n", rc);
+	}
+
+	ircMessage(channel, buff);
+
+	free(buffer);
 
 	return;
 }
