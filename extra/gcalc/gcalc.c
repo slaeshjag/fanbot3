@@ -38,7 +38,7 @@ void *pluginDoInit(const char *network) {
 
 	r = malloc(sizeof(*r));
 	r->match1 = pcre_compile("\\<\\s*span[^\\>]*id\\s*\\=\\s*\"\\s*cwos\\s*\"[^\\>]*\\>\\s*([^\\<]*)\\s*\\<\\s*\\/\\s*span\\s*\\>", PCRE_DOTALL, &err, &errno, NULL);
-	r->match2 = pcre_compile("\\<\\s*div\\b[^\\>]+\\bclass\\s*\\=\\s*\"[^\"]*\\b(vk_ans|vk_bk)\\b[^\"]*\\b(vk_ans|vk_bk)\\b[^\"]*\"[^\\>]*\\>\\s*([^\\<]*)\\b\\s*\\<\\s*\\/\\s*div\\s*\\>", PCRE_DOTALL, &err, &errno, NULL);
+	r->match2 = pcre_compile("\\<\\s*div\\b[^\\>]+\\bclass\\s*\\=\\s*\"[^\"]*\\b(vk_ans|vk_bk)\\b[^\"]*\\b(vk_ans|vk_bk)\\b[^\"]*\"[^\\>]*\\>\\s*([^\\<]*)\\b\\s*\\<\\s*\\/\\s*div\\s*\\>", PCRE_UCP, &err, &errno, NULL);
 
 	if (!r->match1 || !r->match2)
 		fprintf(stderr, "Regex compile failed\n");
@@ -96,7 +96,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	channel = ircGetIntendedChannel(channel, from);
 
 	plugin_escape_string(buff_request, message);
-	sprintf(buff, "https://www.google.com/search?q=%s", buff_request);
+	sprintf(buff, "https://www.google.se/search?q=%s", buff_request);
 	fprintf(stderr, "URL: %s\n", buff);
 	if (getPageFromURL(buff, NULL, NULL, &buffer) != NET_NO_ERROR) {
 		sprintf(buff, "%s: Internal error.", from);
