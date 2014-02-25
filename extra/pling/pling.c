@@ -28,6 +28,7 @@ void sendHelp(const char *from) {
 	ircMessage(from, "<getpling - List all reminders that you'll get in the future");
 	ircMessage(from, "<later <+hh:mm:ss> - Remind about last reminder it sent in <+hh:mm> (time relative from now)");
 	ircMessage(from, "<rmpling <id> - Delete a reminder");
+	ircMessage(from, "<movepling <id> <+hh:mm[:ss]> - Move the pling to a time relative to now");
 
 	return;
 }
@@ -184,7 +185,7 @@ void messageBufferDeleteNick(MAIN *m, const char *who) {
 }
 
 
-void messageBufferDelete(MAIN *m, int id, char *who) {
+void messageBufferDelete(MAIN *m, int id, const char *who) {
 	struct MESSAGE_BUFFER *buffer, *old;
 	char who1[128], who2[128];
 
@@ -386,6 +387,47 @@ void pluginDeletePling(void *handle, const char *from, const char *message) {
 }
 
 
+int pluginMovePling(void *handle, const char *from, const char *message) {
+	MAIN *m = handle;
+	struct MESSAGE_BUFFER *buffer;
+	int hours, minutes, seconds, id;
+	char who1[128], who2[128], buff[512];
+
+	hours = minutes = seconds = 0;
+	id = -1;
+	sscanf(handle, "<movepling %i +%i:%i:%i\n", &id, &hours, &minutes, &seconds);
+	if (hours * 3600 + minutes * 60 < 60)
+		goto bad_dateformat;
+	for (buffer = m->buffer; buffer; buffer = buffer->next)
+		if (buffer->id == id)
+			break;
+	if (!buffer)
+		goto bad_event;
+	strcpy(who1, from);
+	strcpy(who2, buffer->who);
+	stringToUpper(who1);
+	stringToUpper(who2);
+	if (!strcmp(who1, who2))
+		goto bad_event;
+	timerDelete(buffer->id);
+	buffer->when = time(NULL) + hours * 3600 + minutes * 60 + seconds;
+	buffer->id = timerAdd(buffer->when, "pling");
+	return 0;
+
+	bad_dateformat:
+	
+	sprintf(buff, "%s: Dateformat: [! nickname] +hh:mm [message] where time is relative to now", from);
+	ircMessage(from, buff);
+	return -1;
+	
+	bad_event:
+	sprintf(buff, "Event %i doesn't exist", id);
+	ircMessage(from, buff);
+	return -1;
+}
+
+	
+
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	char buff[520], to[520];
 	int minutes, hours, start_from, seconds;
@@ -405,6 +447,8 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		pluginListPling(handle, from);
 	if (strstr(message, "<rmpling") == message)
 		pluginDeletePling(handle, from, message);
+	if (strstr(message, "<movepling") == message)
+		pluginMovePling(handle, from, message);
 	if (strstr(message, "<pling ") != message)
 		return;
 	
