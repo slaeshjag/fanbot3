@@ -34,6 +34,22 @@ void sendHelp(const char *from) {
 }
 
 
+static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, int *s) {
+	int offset;
+
+	if (*str != '+')
+		return -1;
+	*h = *m = *s = 0;
+	sscanf(str, "+%i:%i:%i", h, m, s);
+	if (*h * 3600 + *m * 60 + *s < 60)
+		return -1;
+	*when = time(NULL) + *h * 3600 + *m * 60 + *s;
+	
+	for (offset = 0; str[offset] != ' ' && str[offset] != 0; offset++);
+	return offset;
+}
+
+
 void messageBufferDestroy(MAIN *m) {
 	struct MESSAGE_BUFFER *buffer, *tmp;
 
@@ -312,23 +328,13 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 	int hours, minutes, seconds;
 	time_t then;
 
-	if ((message = strstr(message, "+")) == NULL) {
+	message += 7;
+	if ((calculateTimeOffset(message, &then, &hours, &minutes, &seconds)) < 0) {
 		sprintf(buffer, "%s: Usage: <later +hh:mm", from);
 		ircMessage(channel, buffer);
 		return -1;
 	}
-	
-	seconds = minutes = hours = 0;
-	sscanf(message, "+%i:%i:%i", &hours, &minutes, &seconds);
-	if (hours == 0 && minutes == 0) {
-		sprintf(buffer, "%s: Usage: <later +hh:mm", from);
-		ircMessage(channel, buffer);
-		return -1;
-	}
-
-	then = time(NULL);
-	then += hours * 3600 + minutes * 60 + seconds;
-
+		
 	if ((buffer_s = pluginFindOld(m, from)) == NULL) {
 		sprintf(buffer, "%s: You have not been reminded about anything yet.", from);
 		ircMessage(channel, buffer);
@@ -390,14 +396,22 @@ void pluginDeletePling(void *handle, const char *from, const char *message) {
 int pluginMovePling(void *handle, const char *from, const char *message) {
 	MAIN *m = handle;
 	struct MESSAGE_BUFFER *buffer;
-	int hours, minutes, seconds, id;
+	int hours, minutes, seconds, id, n;
 	char who1[128], who2[128], buff[512];
+	time_t when;
 
 	hours = minutes = seconds = 0;
 	id = -1;
-	sscanf(handle, "<movepling %i +%i:%i:%i\n", &id, &hours, &minutes, &seconds);
-	if (hours * 3600 + minutes * 60 < 60)
+	message += 11;
+	id = -1;
+	for (; *message == ' '; message++);
+	sscanf(message, "%i", &id);
+	for (; *message != ' ' && *message != 0; message++);
+	for (; *message == ' '; message++);
+
+	if ((n = calculateTimeOffset(message, &when, &hours, &minutes, &seconds)) < 0)
 		goto bad_dateformat;
+	
 	for (buffer = m->buffer; buffer; buffer = buffer->next)
 		if (buffer->id == id)
 			break;
@@ -410,8 +424,11 @@ int pluginMovePling(void *handle, const char *from, const char *message) {
 	if (!strcmp(who1, who2))
 		goto bad_event;
 	timerDelete(buffer->id);
-	buffer->when = time(NULL) + hours * 3600 + minutes * 60 + seconds;
+	buffer->when = when;
 	buffer->id = timerAdd(buffer->when, "pling");
+
+	sprintf(buff, "Moved pling %i to %i h, %i m, %i s from now", buffer->id, hours, minutes, seconds);
+	ircMessage(from, buff);
 	return 0;
 
 	bad_dateformat:
@@ -430,7 +447,7 @@ int pluginMovePling(void *handle, const char *from, const char *message) {
 
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	char buff[520], to[520];
-	int minutes, hours, start_from, seconds;
+	int minutes, hours, start_from, seconds, n;
 	time_t then;
 	if (handle == NULL)
 		return;
@@ -467,17 +484,15 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		message++;
 	} else
 		sprintf(to, "%s", from);
-		
-	sscanf(message, "+%i:%i:%i", &hours, &minutes, &seconds);
-
-	if (minutes == 0 && hours == 0) {
+	
+	if ((n = calculateTimeOffset(message, &then, &hours, &minutes, &seconds)) < 0) {
 		sprintf(buff, "%s: Dateformat: [! nickname] +hh:mm [message] where time is relative to now", from);
 		ircMessage(channel, buff);
 		return;
 	}
 
-	then = time(NULL);
-	then += minutes * 60 + hours * 3600 + seconds;
+	message += n;
+
 	if ((message = strstr(message, " ")) == NULL)
 		message = "Pling!";
 	else
