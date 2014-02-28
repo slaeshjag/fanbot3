@@ -384,6 +384,7 @@ int pluginListPling(MAIN *m, const char *from) {
 
 void pluginDeletePling(void *handle, const char *from, const char *message) {
 	int id;
+	char buff[510];
 
 	message += strlen("<rmpling");
 	id = atoi(message);
@@ -421,14 +422,14 @@ int pluginMovePling(void *handle, const char *from, const char *message) {
 	strcpy(who2, buffer->who);
 	stringToUpper(who1);
 	stringToUpper(who2);
-	if (!strcmp(who1, who2))
+	if (strcmp(who1, who2))
 		goto bad_event;
 	timerDelete(buffer->id);
 	buffer->when = when;
-	buffer->id = timerAdd(buffer->when, "pling");
 
 	sprintf(buff, "Moved pling %i to %i h, %i m, %i s from now", buffer->id, hours, minutes, seconds);
 	ircMessage(from, buff);
+	buffer->id = timerAdd(buffer->when, "pling");
 	return 0;
 
 	bad_dateformat:
