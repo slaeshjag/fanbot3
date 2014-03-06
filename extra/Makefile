@@ -10,6 +10,7 @@ default:
 	cd math && make
 	cd random_unicode && make
 	cd gcalc && make
+	cd misc && make
 
 clean:
 	cd messagelen && make clean
@@ -23,3 +24,4 @@ clean:
 	cd math && make clean
 	cd random_unicode && make clean
 	cd gcalc && make clean
+	cd misc && make clean
