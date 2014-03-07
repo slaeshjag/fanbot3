@@ -10,6 +10,7 @@
 
 void sendHelp(const char *from) {
 	ircMessage(from, "<strlen <string> - Return the string length of <string>");
+	ircMessage(from, "<vecka - Get current ISO8601 week number");
 	return;
 }
 
@@ -43,6 +44,8 @@ void pluginTimerPoke(void *handle, int id) {
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	char buff[520];
 	int i;
+	time_t t;
+	struct tm *time_s;
 
 	if (strcmp(command, "PRIVMSG") != 0)
 		return;
@@ -53,6 +56,11 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	if (strstr(message, "<strlen ") == message) {
 		i = strlen(message + 8);
 		sprintf(buff, "%s: %i", from, i);
+		ircMessage(channel, buff);
+	} else if (!strcmp(message, "<vecka")) {
+		t = time(NULL);
+		time_s = localtime(&t);
+		strftime(buff, 520, "Vecka: %V", time_s);
 		ircMessage(channel, buff);
 	}
 	

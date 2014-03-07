@@ -11,17 +11,23 @@
 #define	min(x, y)		((x) < (y) ? (x) : (y))
 
 
-#if 0
-int stirling(int n, int k, time_t t) {
-	if (time(NULL) - t > 5)
-		return -1;
-	if (k == 1 || n == k)
-		return 1;
-	if (!(1 < k && k < n))
-		return 0;
-	return stirling(n - 1, k - 1, t) + k * stirling(n - 1, k, t);
+double fibonacci(int n) {
+	double fib1, fib2, fibt;
+	int i;
+
+	if (n > 100000)
+		return -1.0;
+
+	fib1 = 0;
+	fib2 = fibt = 1;
+	for (i = 1; i < n; i++) {
+		fibt = fib1 + fib2;
+		fib1 = fib2;
+		fib2 = fibt;
+	}
+
+	return fibt;
 }
-#endif
 
 
 double stirling(int n, int k, time_t dummy) {
@@ -50,6 +56,7 @@ double stirling(int n, int k, time_t dummy) {
 
 void sendHelp(const char *from) {
 	ircMessage(from, "<s <n>, <k> - Calculate S(n, k)");
+	ircMessage(from, "<fibo n - Canculate the n:th fibonacci number");
 	return;
 }
 
@@ -101,6 +108,11 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 			sprintf(buff, "S(%i, %i) took too long .-.", i, j);
 		else
 			sprintf(buff, "S(%i, %i) = %f", i, j, k);
+		ircMessage(channel, buff);
+	} else if (strstr(message, "<fibo") == message) {
+		i = 0;
+		sscanf(message, "<fibo %i", &i);
+		sprintf(buff, "Fibonacci number %i is %f", i, fibonacci(i));
 		ircMessage(channel, buff);
 	}
 	
