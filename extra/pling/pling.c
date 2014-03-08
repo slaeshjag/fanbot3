@@ -42,11 +42,11 @@ static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, in
 	*h = *m = *s = 0;
 
 	if (*str == '+') {
-		sscanf(str, "+%i:%i:%i", h, m, s);
-	} else if (*str == '@') {
+		sscanf(str+1, "%i:%i:%i", h, m, s);
+	} else if (*str == '$') {
 		delim[0] = delim[1] = delim[2] = '\0';
 
-		read = sscanf(str, "@%d%c%d%c%d%c", number, delim, number+1, delim+1, number+2, delim+2);
+		read = sscanf(str+1, "%d%c%d%c%d%c", number, delim, number+1, delim+1, number+2, delim+2);
 
 		for (i = 0; i < read/2; i++) {
 			/* h, m, s are the only valid delimiters */
