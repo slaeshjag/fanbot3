@@ -23,8 +23,19 @@ typedef struct {
 } MAIN;
 
 
+void messageTimestamps(const char *from, const char *channel) {
+	char buff[520];
+
+	sprintf(buff, "%s: +hh:mm[:ss] (relative from now,) $[??h][??m][??s] (relative from now,)", from);
+	ircMessage(channel, buff);
+
+	return;
+}
+
+
 void sendHelp(const char *from) {
-	ircMessage(from, "<pling [!nick] <+hh:mm[:ss]> [message] - Remind someone about [message] in <+hh:mm[:ss]> (time relative from now)");
+	ircMessage(from, "<pling [!nick] <timestamp> [message] - Remind someone about [message] in <+hh:mm[:ss]> (time relative from now)");
+	messageTimestamps(from, from);
 	ircMessage(from, "<getpling - List all reminders that you'll get in the future");
 	ircMessage(from, "<later <+hh:mm:ss> - Remind about last reminder it sent in <+hh:mm> (time relative from now)");
 	ircMessage(from, "<rmpling <id> - Delete a reminder");
@@ -359,8 +370,9 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 
 	message += 7;
 	if ((calculateTimeOffset(message, &then, &hours, &minutes, &seconds)) < 0) {
-		sprintf(buffer, "%s: Usage: <later +hh:mm", from);
+		sprintf(buffer, "%s: Usage: <later <timestamp>", from);
 		ircMessage(channel, buffer);
+		messageTimestamps(from, channel);
 		return -1;
 	}
 		
@@ -462,9 +474,10 @@ int pluginMovePling(void *handle, const char *from, const char *message) {
 	return 0;
 
 	bad_dateformat:
-	
-	sprintf(buff, "%s: Dateformat: [! nickname] +hh:mm [message] where time is relative to now", from);
+
+	sprintf(buff, "%s: Bad dateformat", from);
 	ircMessage(from, buff);
+	messageTimestamps(from, from);
 	return -1;
 	
 	bad_event:
@@ -507,8 +520,9 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		start_from = 1;
 		message += 2;
 		if ((message = strstr(message, " ")) == NULL) {
-			sprintf(buff, "%s: Dateformat: [! nickname] +hh:mm [message] where time is relative to now", from);
+			sprintf(buff, "%s: Dateformat: [! nickname] <timestamp> [message]", from);
 			ircMessage(channel, buff);
+			messageTimestamps(from, channel);
 			return;
 		}
 		message++;
@@ -516,8 +530,9 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		sprintf(to, "%s", from);
 	
 	if ((n = calculateTimeOffset(message, &then, &hours, &minutes, &seconds)) < 0) {
-		sprintf(buff, "%s: Dateformat: [! nickname] +hh:mm [message] where time is relative to now", from);
+		sprintf(buff, "%s: Dateformat: [! nickname] <timestamp> [message]", from);
 		ircMessage(channel, buff);
+		messageTimestamps(from, channel);
 		return;
 	}
 

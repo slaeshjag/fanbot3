@@ -112,7 +112,11 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	} else if (strstr(message, "<fibo") == message) {
 		i = 0;
 		sscanf(message, "<fibo %i", &i);
-		sprintf(buff, "Fibonacci number %i is %f", i, fibonacci(i));
+		k = fibonacci(i);
+		if (k > 0)
+			sprintf(buff, "Fibonacci number %i is %.0f", i, k);
+		else
+			sprintf(buff, "Fibonacci number %i is inf", i);
 		ircMessage(channel, buff);
 	}
 	
