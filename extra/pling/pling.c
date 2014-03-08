@@ -26,7 +26,10 @@ typedef struct {
 void messageTimestamps(const char *from, const char *channel) {
 	char buff[520];
 
-	sprintf(buff, "%s: +hh:mm[:ss] (relative from now,) $[??h][??m][??s] (relative from now,)", from);
+	if (from != channel)
+		sprintf(buff, "%s: Timestamps: +hh:mm[:ss] (relative from now,) $[??h][??m][??s] (relative from now,)", from);
+	else
+		sprintf(buff, "Timestamps: +hh:mm[:ss] (relative from now,) $[??h][??m][??s] (relative from now,)");
 	ircMessage(channel, buff);
 
 	return;
@@ -34,7 +37,7 @@ void messageTimestamps(const char *from, const char *channel) {
 
 
 void sendHelp(const char *from) {
-	ircMessage(from, "<pling [!nick] <timestamp> [message] - Remind someone about [message] in <+hh:mm[:ss]> (time relative from now)");
+	ircMessage(from, "<pling [!nick] <timestamp> [message] - Remind someone about [message]");
 	messageTimestamps(from, from);
 	ircMessage(from, "<getpling - List all reminders that you'll get in the future");
 	ircMessage(from, "<later <+hh:mm:ss> - Remind about last reminder it sent in <+hh:mm> (time relative from now)");
