@@ -35,16 +35,45 @@ void sendHelp(const char *from) {
 
 
 static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, int *s) {
-	int offset;
-
-	if (*str != '+')
-		return -1;
+	int offset, read, i, j;
+	int timedelta;
+	int number[3];
+	char delim[3];
 	*h = *m = *s = 0;
-	sscanf(str, "+%i:%i:%i", h, m, s);
-	if (*h * 3600 + *m * 60 + *s < 60)
+
+	if (*str == '+') {
+		sscanf(str, "+%i:%i:%i", h, m, s);
+	} else if (*str == '@') {
+		delim[0] = delim[1] = delim[2] = '\0';
+
+		read = sscanf(str, "@%d%c%d%c%d%c", number, delim, number+1, delim+1, number+2, delim+2);
+
+		for (i = 0; i < read/2; i++) {
+			/* h, m, s are the only valid delimiters */
+			if (delim[i] != 'h' && delim[i] != 'm' && delim[i] != 's')
+				return -1;
+
+			/* duplicates are not allowed (i.e. you can't say 30s30s30s) */
+			for (j = i+1; j < read/2; j++)
+				if (delim[j] == delim[i])
+					return -1;
+
+			switch (delim[i]) {
+				case 'h': *h = number[i]; break;
+				case 'm': *m = number[i]; break;
+				case 's': *s = number[i]; break;
+			}
+		}
+	} else {
 		return -1;
-	*when = time(NULL) + *h * 3600 + *m * 60 + *s;
-	
+	}
+
+	timedelta = *h * 3600 + *m * 60 + *s;
+	if (timedelta < 60)
+		return -1;
+
+	*when = time(NULL) + timedelta;
+
 	for (offset = 0; str[offset] != ' ' && str[offset] != 0; offset++);
 	return offset;
 }
