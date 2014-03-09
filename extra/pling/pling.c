@@ -38,11 +38,11 @@ void messageTimestamps(const char *from, const char *channel) {
 
 void sendHelp(const char *from) {
 	ircMessage(from, "<pling [!nick] <timestamp> [message] - Remind someone about [message]");
-	messageTimestamps(from, from);
 	ircMessage(from, "<getpling - List all reminders that you'll get in the future");
-	ircMessage(from, "<later <+hh:mm:ss> - Remind about last reminder it sent in <+hh:mm> (time relative from now)");
+	ircMessage(from, "<later <timestamp> - Remind about last reminder it sent");
 	ircMessage(from, "<rmpling <id> - Delete a reminder");
-	ircMessage(from, "<movepling <id> <+hh:mm[:ss]> - Move the pling to a time relative to now");
+	ircMessage(from, "<movepling <id> <timestamp> - Move the pling to a time relative to now");
+	messageTimestamps(from, from);
 
 	return;
 }
