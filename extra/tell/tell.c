@@ -104,7 +104,7 @@ void messageBufferRead(MAIN *m) {
 	sprintf(buff, "data/tell/%s", m->network);
 
 	if ((fp = fopen(buff, "r")) == NULL) {
-		configErrorPush("pling: Warning: Unable to open message buffer dump");
+		configErrorPush("tell: Warning: Unable to open message buffer dump");
 		return;
 	}
 
