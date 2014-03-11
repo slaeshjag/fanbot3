@@ -13,6 +13,7 @@ void ircNick(const char *nick);
 void ircJoin(const char *channel, const char *key);
 void ircRaw(const char *raw);
 void ircIdentify(const char *who, const char *key);
+const char *ircNickname();
 void ircLine();
 
 #endif

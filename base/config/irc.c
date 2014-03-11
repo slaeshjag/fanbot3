@@ -1,6 +1,15 @@
 #include "config.h"
 
 
+const char *ircNickname() {
+	struct NETWORK_ENTRY *network;
+
+	if (!(network = networkFind(config->net.network_active)))
+		return NULL;
+	return network->nick;
+}
+
+
 int ircLogic(const char *command) {		/* To detect errors etc. */
 	struct NETWORK_ENTRY *network;
 
