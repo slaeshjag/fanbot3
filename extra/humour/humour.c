@@ -27,7 +27,6 @@ const char *pluginName() {
 
 
 void *pluginDestroy(void *handle) {
-	int i;
 	struct list_main *m = handle;
 
 	free(m->list);
@@ -39,12 +38,16 @@ void *pluginDestroy(void *handle) {
 
 void *pluginDoInit(const char *network) {
 	struct list_main *m;
-	int i, args;
+	int i;
 	char *t, buff[128];
 	const char *nick = ircNickname();
 	FILE *fp = fopen("conf/humour.list", "r");
 
 	m = malloc(sizeof(*m));
+	if (!fp) {
+		m->list = NULL;
+		m->entries = 0;
+	}
 	
 	for (i = 0; !feof(fp); fgets(buff, 512, fp), i++);
 	i--;
@@ -54,14 +57,14 @@ void *pluginDoInit(const char *network) {
 	fseek(fp, 0, SEEK_SET);
 
 	for (i = 0; !feof(fp); i++) {
-		fscanf(fp, "%s %i", buff, &m->list[i].args);
+		fscanf(fp, "%s %i ", buff, &m->list[i].args);
 		if ((t = strchr(buff, '@'))) {
 			*t = 0;
 			t++;
-			sprintf(m->list[i].command, "%s%s", buff, t);
+			sprintf(m->list[i].command, "%s%s%s", buff, nick, t);
 		} else
 			strcpy(m->list[i].command, buff);
-		fgets(fp, 320, m->list[i].reply);
+		fgets(m->list[i].reply, 320, fp);
 		m->list[i].reply[strlen(m->list[i].reply) - 1] = 0;
 		/* Allow for spaces in the command */
 		for (t = m->list[i].command; strchr(t, '~'); t = strchr(t, '%'))
@@ -80,7 +83,6 @@ void pluginTimerPoke(void *handle, int id) {
 
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
 	char buff[520];
-	const char *nick;
 	int i;
 	struct list_main *m = handle;
 

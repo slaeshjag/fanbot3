@@ -11,6 +11,7 @@ default:
 	cd random_unicode && make
 	cd gcalc && make
 	cd misc && make
+	cd humour && make
 
 clean:
 	cd messagelen && make clean
@@ -25,3 +26,4 @@ clean:
 	cd random_unicode && make clean
 	cd gcalc && make clean
 	cd misc && make clean
+	cd humour && make clean
