@@ -31,10 +31,20 @@ void segfault(int signal_num) {
 }
 
 
+void busserr(int signal_num) {
+	(fanbot.destroy)(fanbot.handle, "SIGBUS received (Buss error) - Bot is shutting down");
+	dlclose(fanbot.library);
+	exit(-1);
+}
+
+
 int main(int argc, char **argv) {
 	signal(SIGUSR1, reload);
 	signal(SIGINT, die);
 	signal(SIGSEGV, segfault);
+	#ifdef SIGBUS
+	signal(SIGBUS, busserr);
+	#endif
 	signal(SIGPIPE, SIG_IGN);
 
 	for (;;) {
