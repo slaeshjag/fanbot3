@@ -39,7 +39,7 @@ void *pluginDestroy(void *handle) {
 void *pluginDoInit(const char *network) {
 	struct list_main *m;
 	int i, j, args;
-	char *t, buff[128];
+	char *t, buff[600];
 	const char *nick = ircNickname();
 	FILE *fp = fopen("conf/humour.list", "r");
 
