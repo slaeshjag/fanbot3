@@ -27,9 +27,9 @@ void messageTimestamps(const char *from, const char *channel) {
 	char buff[520];
 
 	if (from != channel)
-		sprintf(buff, "%s: Timestamps: +hh:mm[:ss] (relative from now,) $[??h][??m][??s] (relative from now,)", from);
+		sprintf(buff, "%s: Timestamps: +hh:mm[:ss] (relative from now,) $[??y][??d][??h][??m][??s] (relative from now,)", from);
 	else
-		sprintf(buff, "Timestamps: +hh:mm[:ss] (relative from now,) $[??h][??m][??s] (relative from now,)");
+		sprintf(buff, "Timestamps: +hh:mm[:ss] (relative from now,) $[??y][??d][??h][??m][??s] (relative from now,)");
 	ircMessage(channel, buff);
 
 	return;
@@ -51,8 +51,8 @@ void sendHelp(const char *from) {
 static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, int *s) {
 	int offset, read, i, j;
 	int timedelta;
-	int number[3];
-	char delim[3];
+	int number[5];
+	char delim[5];
 	*h = *m = *s = 0;
 
 	if (*str == '+') {
@@ -60,11 +60,11 @@ static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, in
 	} else if (*str == '$') {
 		delim[0] = delim[1] = delim[2] = '\0';
 
-		read = sscanf(str+1, "%d%c%d%c%d%c", number, delim, number+1, delim+1, number+2, delim+2);
+		read = sscanf(str+1, "%d%c%d%c%d%c%d%c%d%c", number, delim, number+1, delim+1, number+2, delim+2, number+3, delim+3, number+4, delim+4);
 
 		for (i = 0; i < read/2; i++) {
 			/* h, m, s are the only valid delimiters */
-			if (delim[i] != 'h' && delim[i] != 'm' && delim[i] != 's')
+			if (delim[i] != 'h' && delim[i] != 'm' && delim[i] != 's' && delim[i] != 'y' && delim[i] != 'd')
 				return -1;
 
 			/* duplicates are not allowed (i.e. you can't say 30s30s30s) */
@@ -73,9 +73,11 @@ static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, in
 					return -1;
 
 			switch (delim[i]) {
-				case 'h': *h = number[i]; break;
+				case 'h': *h += number[i]; break;
 				case 'm': *m = number[i]; break;
 				case 's': *s = number[i]; break;
+				case 'd': *h += number[i] * 24; break;
+				case 'y': *h += number[i] * 8765; break;
 			}
 		}
 	} else {
