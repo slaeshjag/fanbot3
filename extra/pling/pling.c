@@ -373,7 +373,7 @@ int pluginRepling(MAIN *m, const char *message, const char *from, const char *ch
 	messageBufferAdd(m, buffer_s->message, from, channel, then);
 	messageBufferDeleteNick(m, from);
 
-	sprintf(buffer, "%s: Mkay, I'll remind you again in %i hours, %i minutes and %i seconds", from, hours, minutes, seconds);
+	sprintf(buffer, "%s: Repeating pling notification in %i hours, %i minutes and %i seconds", from, hours, minutes, seconds);
 	ircMessage(channel, buffer);
 
 	return 0;
