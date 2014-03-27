@@ -57,6 +57,32 @@ static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, in
 
 	if (*str == '+') {
 		sscanf(str+1, "%i:%i:%i", h, m, s);
+	} else if (*str == '@') {
+		struct tm *t;
+		time_t tmp;
+		
+		sscanf(message, "@%i:%i:%i", &hours, &minutes, &seconds);
+		if (minutes == 0 && hours == 0) {
+			return -1;
+		}
+		t = localtime(&then);
+		t->tm_hour = hours;
+		t->tm_min = minutes;
+		t->tm_sec = seconds;
+			
+		then = mktime(t);
+		if (then < time(NULL)) {
+			then += 3600*24;
+			hours += 24;
+		}
+		tmp = then - time(NULL);
+		hours = tmp / 3600;
+		minutes = tmp / 60 % 60;
+		seconds = tmp % 60;
+		
+		*h = hours;
+		*m = minutes;
+		*s = seconds;
 	} else if (*str == '$') {
 		delim[0] = delim[1] = delim[2] = '\0';
 
