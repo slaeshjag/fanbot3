@@ -63,7 +63,7 @@ static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, in
 		time_t then;
 		int minutes, hours, seconds;
 		
-		sscanf(str + 1, "@%i:%i:%i", &hours, &minutes, &seconds);
+		sscanf(str + 1, "%i:%i:%i", &hours, &minutes, &seconds);
 		if (minutes == 0 && hours == 0)
 			return -1;
 		
