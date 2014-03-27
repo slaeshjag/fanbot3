@@ -67,6 +67,7 @@ static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, in
 		if (minutes == 0 && hours == 0)
 			return -1;
 		
+		then = time(NULL);
 		t = localtime(&then);
 		t->tm_hour = hours;
 		t->tm_min = minutes;
