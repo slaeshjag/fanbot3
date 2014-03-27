@@ -60,11 +60,13 @@ static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, in
 	} else if (*str == '@') {
 		struct tm *t;
 		time_t tmp;
+		time_t then;
+		int minutes, hours, seconds;
 		
-		sscanf(message, "@%i:%i:%i", &hours, &minutes, &seconds);
-		if (minutes == 0 && hours == 0) {
+		sscanf(str + 1, "@%i:%i:%i", &hours, &minutes, &seconds);
+		if (minutes == 0 && hours == 0)
 			return -1;
-		}
+		
 		t = localtime(&then);
 		t->tm_hour = hours;
 		t->tm_min = minutes;
