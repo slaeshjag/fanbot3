@@ -12,6 +12,7 @@ default:
 	cd gcalc && make
 	cd misc && make
 	cd humour && make
+	cd pick && make
 
 clean:
 	cd messagelen && make clean
@@ -27,3 +28,4 @@ clean:
 	cd gcalc && make clean
 	cd misc && make clean
 	cd humour && make clean
+	cd pick && make clean
