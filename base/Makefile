@@ -7,6 +7,7 @@ default:
 	cd fanbot-legacy && make
 	cd help && make
 	cd keepalive && make
+	cd ctcp && make
 
 clean:
 	cd fanbot && make clean
@@ -17,3 +18,4 @@ clean:
 	cd fanbot-legacy && make clean
 	cd help && make clean
 	cd keepalive && make clean
+	cd ctcp && make clean
