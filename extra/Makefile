@@ -13,6 +13,7 @@ default:
 	cd misc && make
 	cd humour && make
 	cd pick && make
+	cd day && make
 
 clean:
 	cd messagelen && make clean
@@ -29,3 +30,4 @@ clean:
 	cd misc && make clean
 	cd humour && make clean
 	cd pick && make clean
+	cd day && make clean
