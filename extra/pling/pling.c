@@ -178,6 +178,7 @@ void messageBufferAdd(MAIN *m, const char *message, const char *who, const char 
 	buffer->next = m->buffer;
 	m->buffer = buffer;
 
+	messageBufferDump(m);
 	return;
 }
 
@@ -315,6 +316,7 @@ void messageBufferDelete(MAIN *m, int id, const char *who) {
 		buffer = buffer->next;
 	}
 
+	messageBufferDump(m);
 	return;
 }
 
