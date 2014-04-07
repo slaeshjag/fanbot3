@@ -11,6 +11,7 @@
 void sendHelp(const char *from) {
 	ircMessage(from, "<strlen <string> - Return the string length of <string>");
 	ircMessage(from, "<vecka - Get current ISO8601 week number");
+	ircMessage(from, "<unix - Current UNIX-time according to local timezone");
 	return;
 }
 
@@ -61,6 +62,10 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		t = time(NULL);
 		time_s = localtime(&t);
 		strftime(buff, 520, "Vecka: %V", time_s);
+		ircMessage(channel, buff);
+	} else if (!strcmp(message, "<unix")) {
+		t = time(NULL);
+		sprintf(buff, "%s: Current Unix time is: %lli", from, (long long int) t);
 		ircMessage(channel, buff);
 	}
 	
