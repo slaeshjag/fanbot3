@@ -21,6 +21,7 @@ typedef struct {
 	int			cnt;
 } MAIN;
 
+void messageBufferDump(MAIN *m);
 
 void sendHelp(const char *from) {
 	ircMessage(from, "<tell <nick> <message> - tell <nick> about <message> next time <nick> is around");
@@ -68,6 +69,7 @@ void messageBufferAdd(MAIN *m, const char *message, const char *who, const char 
 	else
 		m->buffer = buffer;
 	buffer->next = NULL;
+	messageBufferDump(m);
 
 	return;
 }
@@ -145,6 +147,8 @@ void messageBufferDelete(MAIN *m, int id) {
 		old = buffer;
 		buffer = buffer->next;
 	}
+	
+	messageBufferDump(m);
 
 	return;
 }
