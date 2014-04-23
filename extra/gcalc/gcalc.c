@@ -97,7 +97,6 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 
 	plugin_escape_string(buff_request, message);
 	sprintf(buff, "https://www.google.se/search?q=%s", buff_request);
-	fprintf(stderr, "URL: %s\n", buff);
 	if (getPageFromURL(buff, NULL, NULL, &buffer) != NET_NO_ERROR) {
 		sprintf(buff, "%s: Internal error.", from);
 		ircMessage(channel, buff);
