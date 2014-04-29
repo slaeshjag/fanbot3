@@ -67,6 +67,9 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		t = time(NULL);
 		sprintf(buff, "%s: Current Unix time is: %lli", from, (long long int) t);
 		ircMessage(channel, buff);
+	} else if (strstr(message, "arne")) {
+		if (rand() % 5)
+		ircMessage(channel, "arne");
 	}
 	
 
