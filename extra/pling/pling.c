@@ -22,6 +22,7 @@ typedef struct {
 	const char		*network;
 } MAIN;
 
+void messageBufferDump(MAIN *m);
 
 void messageTimestamps(const char *from, const char *channel) {
 	char buff[520];
@@ -276,12 +277,13 @@ void messageBufferDeleteNick(MAIN *m, const char *who) {
 }
 
 
-void messageBufferDelete(MAIN *m, int id, const char *who) {
+int messageBufferDelete(MAIN *m, int id, const char *who) {
 	struct MESSAGE_BUFFER *buffer, *old;
 	char who1[128], who2[128];
+	int ret = 0;
 
 	if (m->buffer == NULL)
-		return;
+		return 0;
 
 	if (who)
 		sprintf(who1, "%s", who);
@@ -299,7 +301,8 @@ void messageBufferDelete(MAIN *m, int id, const char *who) {
 		timerDelete(old->id);
 		messageBufferDeleteNick(m, old->who);
 		messageBufferAddNick(m, old);
-		return;
+		ret = 1;
+		goto done;
 	}
 	while (buffer != NULL) {
 		sprintf(who2, "%s", old->who);
@@ -310,14 +313,16 @@ void messageBufferDelete(MAIN *m, int id, const char *who) {
 			timerDelete(buffer->id);
 			messageBufferDeleteNick(m, buffer->who);
 			messageBufferAddNick(m, buffer);
-			return;
+			ret = 1;
+			goto done;
 		}
 		old = buffer;
 		buffer = buffer->next;
 	}
 
+	done:
 	messageBufferDump(m);
-	return;
+	return ret;
 }
 
 
@@ -465,7 +470,12 @@ void pluginDeletePling(void *handle, const char *from, const char *message) {
 
 	message += strlen("<rmpling");
 	id = atoi(message);
-	messageBufferDelete(handle, id, from);
+	fprintf(stderr, "%s requested removal of pling %i\n", from, id);
+	if (messageBufferDelete(handle, id, from))
+		sprintf(buff, "Removed pling %i\n", id);
+	else
+		sprintf(buff, "Invalid ID %i\n", id);
+	ircMessage(from, buff);
 
 	return;
 }
