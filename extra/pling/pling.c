@@ -305,7 +305,7 @@ int messageBufferDelete(MAIN *m, int id, const char *who) {
 		goto done;
 	}
 	while (buffer != NULL) {
-		sprintf(who2, "%s", old->who);
+		sprintf(who2, "%s", buffer->who);
 		stringToUpper(who2);
 	
 		if (buffer->id == id && (!strcmp(who1, who2) || !who)) {
