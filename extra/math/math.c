@@ -34,18 +34,23 @@ double stirling(int n, int k, time_t dummy) {
 	double *generation;
 	double result;
 	int i, j;
+	time_t start;
 
 	if ((generation = calloc(k+1, sizeof(double))) == NULL) {
 		printf("Calloc failed!\n");
 		return -1;
 	}
 
+	start = time(NULL);
 	generation[0] = 1;
 	for (i = 1; i <= n; i++) {
 		for (j = min(i, k); j > 0; j--) {
 			generation[j] = j*generation[j] + generation[j-1];
 		}
-	generation[0] = 0;
+		generation[0] = 0;
+		if (time(NULL) > start + 5)
+			return -1.0f;
+			
 	}
 
 	result = generation[k];
