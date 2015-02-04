@@ -46,8 +46,8 @@ void pickNose(char *message, const char *channel, const char *from) {
 	char reply[520];
 
 	for (blah = message, i = 0; blah; blah++, blah = strstr(blah, " or "), i++);
-	if (!i || !strlen(message)) {
-		sprintf(reply, "%s: Pick what? Your nose?", from);
+	if (i < 2 || !strlen(message)) {
+		sprintf(reply, "%s: Pick what? Your nose? Usage: <pick arg1 or arg2 or ...", from);
 		ircMessage(channel, reply);
 		return;
 	}
