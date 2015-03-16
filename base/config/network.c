@@ -174,12 +174,6 @@ void networkProcess(struct NETWORK_ENTRY *network) {
 
 		i = layerRead(network->layer, network->network_handle, &network->process_buffer[network->buff_pos], 512 - network->buff_pos, &error);
 		if (i <= 0) {
-			if (time(NULL) - network->last_event >= NETWORK_PING_TIMEOUT) {
-				configErrorPush("Connection seems dead");
-				networkDisconnect(network->name, "No data in an unreasonably long time");
-				return;
-			}
-
 			if (error == EWOULDBLOCK)
 				break;	
 			configErrorPush("Connection reset");
@@ -364,6 +358,7 @@ void networkDisconnect(const char *name, const char *reason) {
 	close(network->socket);
 	network->ready = NETWORK_NOT_CONNECTED;
 	network->disconnect = time(NULL);
+	network->last_event = time(NULL);
 
 	networkPlugindataDelete(name);
 	networkFreeChannelBuffers(network);
@@ -587,9 +582,15 @@ void networkWait() {
 				}
 				ircIdentify(next->identify_to, next->identify_key);
 				next->ready = NETWORK_READY;
-		}
-		else if (next->ready == NETWORK_READY)
+		} else if (next->ready == NETWORK_READY)
 			timerProcess();
+
+		if (time(NULL) - next->last_event >= NETWORK_PING_TIMEOUT) {
+			configErrorPush("Connection seems dead");
+			networkDisconnect(next->name, "No data in an unreasonably long time");
+			return;
+		}
+
 		networkProcessBuffers();
 		networkReconnect();
 		next = next->next;
