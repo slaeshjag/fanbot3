@@ -88,9 +88,13 @@ static int calculateTimeOffset(const char *str, time_t *when, int *h, int *m, in
 		*m = minutes;
 		*s = seconds;
 	} else if (*str == '$') {
+		char dateformat[520];
 		delim[0] = delim[1] = delim[2] = '\0';
+		strcpy(dateformat, str+1);
+		if (strchr(dateformat, ' '))
+			*strchr(dateformat, ' ') = 0;
 
-		read = sscanf(str+1, "%d%c%d%c%d%c%d%c%d%c", number, delim, number+1, delim+1, number+2, delim+2, number+3, delim+3, number+4, delim+4);
+		read = sscanf(dateformat, "%d%c%d%c%d%c%d%c%d%c", number, delim, number+1, delim+1, number+2, delim+2, number+3, delim+3, number+4, delim+4);
 
 		for (i = 0; i < read/2; i++) {
 			/* h, m, s are the only valid delimiters */
