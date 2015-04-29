@@ -54,7 +54,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	
 	if (strcmp(message, API_HELP_CMD) == 0)
 		sendHelp(from);
-	if (strstr(message, "<day") == message) {
+	if (!strcmp(message, "<day")) {
 		now = time(NULL);
 		localtime_r(&now, &t);
 		strftime(ti, 520, "%A %F, week %V", &t);
