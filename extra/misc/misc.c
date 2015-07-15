@@ -76,7 +76,7 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 			sprintf(buff, "%s: Number of sides must be 1 or more", from);
 			ircMessage(channel, buff);
 		} else {
-			sprintf(buff, "%s: %u\n", from, rand() % s + 1);
+			sprintf(buff, "%s: %i\n", from, rand() % s + 1);
 			ircMessage(channel, buff);
 		}
 	} else if (strstr(message, "arne")) {
