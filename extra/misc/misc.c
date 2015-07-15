@@ -12,6 +12,7 @@ void sendHelp(const char *from) {
 	ircMessage(from, "<strlen <string> - Return the string length of <string>");
 	ircMessage(from, "<vecka - Get current ISO8601 week number");
 	ircMessage(from, "<unix - Current UNIX-time according to local timezone");
+	ircMessage(from, "<roll <sides> - Roll a dice");
 	return;
 }
 
@@ -67,6 +68,17 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		t = time(NULL);
 		sprintf(buff, "%s: Current Unix time is: %lli", from, (long long int) t);
 		ircMessage(channel, buff);
+	} else if (!strcmp(message, "<roll ")) {
+		unsigned int s;
+		s = 0;
+		sscanf(message, "<roll %u", &s);
+		if (s < 1) {
+			sprintf(buff, "%s: Number of sides must be 1 or more", from);
+			ircMessage(channel, buff);
+		} else {
+			sprintf(buff, "%s: %u\n", from, rand() % s + 1);
+			ircMessage(channel, buff);
+		}
 	} else if (strstr(message, "arne")) {
 		/*if (rand() % 5)
 			ircMessage(channel, "arne");*/
