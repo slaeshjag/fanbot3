@@ -588,7 +588,6 @@ void networkWait() {
 		if (time(NULL) - next->last_event >= NETWORK_PING_TIMEOUT) {
 			configErrorPush("Connection seems dead");
 			networkDisconnect(next->name, "No data in an unreasonably long time");
-			return;
 		}
 
 		networkProcessBuffers();
