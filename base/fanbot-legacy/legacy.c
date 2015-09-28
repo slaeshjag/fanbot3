@@ -36,7 +36,7 @@ char *pluginURLEscapeUgly(const char *string) {
 		if (string_u[i] == ' ')
 			sprintf(&new[i*3], "%%%X", ';');
 		else
-			sprintf(&new[i*3], "%%%X", string_u[i]);
+			sprintf(&new[i*3], "%%%.2X", string_u[i]);
 	}
 	return new;
 }
