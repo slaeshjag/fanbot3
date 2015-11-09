@@ -1,3 +1,5 @@
+#define	_GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -82,8 +84,8 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	} else if (strstr(message, "arne")) {
 		/*if (rand() % 5)
 			ircMessage(channel, "arne");*/
-	} else if (!strcasecmp(from, "wally") && (tmp = strcasestr(message, " pls"))) {
-		if (tmp[4] == ' ' || !tmp[4])
+	} else if (!strcasecmp(from, "wally") && (tmp = strcasestr(message, "pls"))) {
+		if (((tmp != message && tmp[-1] == ' ') || tmp == message) && (tmp[4] == ' ' || !tmp[4]))
 			ircMessage(channel, "PLS U");
 	}
 	
