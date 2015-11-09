@@ -82,6 +82,8 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	} else if (strstr(message, "arne")) {
 		/*if (rand() % 5)
 			ircMessage(channel, "arne");*/
+	} else if (!strcasecmp(from, "wally") && !strcasecmp(message, "pls")) {
+		ircMessage(channel, "PLS U");
 	}
 	
 
