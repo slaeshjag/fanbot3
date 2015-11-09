@@ -44,7 +44,7 @@ void pluginTimerPoke(void *handle, int id) {
 
 
 void pluginFilter(void *handle, const char *from, const char *host, const char *command, const char *channel, const char *message) {
-	char buff[520];
+	char buff[520], *tmp;
 	int i;
 	time_t t;
 	struct tm *time_s;
@@ -82,8 +82,9 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 	} else if (strstr(message, "arne")) {
 		/*if (rand() % 5)
 			ircMessage(channel, "arne");*/
-	} else if (!strcasecmp(from, "wally") && !strcasecmp(message, "pls")) {
-		ircMessage(channel, "PLS U");
+	} else if (!strcasecmp(from, "wally") && (tmp = strcasestr(message, " pls"))) {
+		if (tmp[4] == ' ' || !tmp[4])
+			ircMessage(channel, "PLS U");
 	}
 	
 
