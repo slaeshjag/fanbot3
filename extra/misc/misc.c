@@ -71,16 +71,43 @@ void pluginFilter(void *handle, const char *from, const char *host, const char *
 		sprintf(buff, "%s: Current Unix time is: %lli", from, (long long int) t);
 		ircMessage(channel, buff);
 	} else if (strstr(message, "<roll ") == message) {
-		unsigned int s;
-		s = 0;
-		sscanf(message, "<roll %u", &s);
-		if (s < 1) {
-			sprintf(buff, "%s: Number of sides must be 1 or more", from);
-			ircMessage(channel, buff);
-		} else {
-			sprintf(buff, "%s: %i\n", from, rand() % s + 1);
-			ircMessage(channel, buff);
+		unsigned int match, a, b, die, sides;
+		match = sscanf(message, "<roll %ud%u", &a, &b);
+
+		if (match == 1) {
+			die = 1;
+			sides = a;
 		}
+		else if (match == 2) {
+			die = a;
+			sides = b;
+		}
+
+		if (sides < 1 || sides > 40) {
+			sprintf(buff, "%s: Number of sides must be 1-40", from);
+		}
+		else if (die < 1 || die > 20) {
+			sprintf(buff, "%s: Number of die must be 1-20", from);
+		}
+		else {
+			srand((unsigned) time(&t));
+			sprintf(buff, "");
+
+			for (int i = 0; i < die; i++) {
+				int result = (rand() % sides) + 1;
+				int length = snprintf(NULL, 0, "%i", result);
+				char *result_string = malloc(length + 1);
+				snprintf(result_string, length + 1, "%d", result);
+				strcat(buff, result_string);
+				free(result_string);
+
+				if (i < die - 1) {
+					strcat(buff, ", ");
+				}
+			}
+		}
+
+		ircMessage(channel, buff);
 	} else if (strstr(message, "arne")) {
 		/*if (rand() % 5)
 			ircMessage(channel, "arne");*/
